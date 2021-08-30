@@ -1,497 +1,38 @@
-/**
- *Submitted for verification at BscScan.com on 2021-03-25
-*/
+//SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.0;
 
-interface IGameSwapFactory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
-
-    function feeTo() external view returns (address);
-
-    function feeToSetter() external view returns (address);
-
-    function getPair(address tokenA, address tokenB) external view returns (address pair);
-
-    function allPairs(uint256) external view returns (address pair);
-
-    function allPairsLength() external view returns (uint256);
-
-    function createPair(address tokenA, address tokenB) external returns (address pair);
-
-    function setFeeTo(address) external;
-
-    function setFeeToSetter(address) external;
-}
-
-interface IGameSwapPair {
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    function name() external pure returns (string memory);
-
-    function symbol() external pure returns (string memory);
-
-    function decimals() external pure returns (uint8);
-
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address owner) external view returns (uint256);
-
-    function allowance(address owner, address spender) external view returns (uint256);
-
-    function approve(address spender, uint256 value) external returns (bool);
-
-    function transfer(address to, uint256 value) external returns (bool);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-
-    function nonces(address owner) external view returns (uint256);
-
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-
-    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint256 amount0In,
-        uint256 amount1In,
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    function MINIMUM_LIQUIDITY() external pure returns (uint256);
-
-    function factory() external view returns (address);
-
-    function token0() external view returns (address);
-
-    function token1() external view returns (address);
-
-    function getReserves()
-    external
-    view
-    returns (
-        uint112 reserve0,
-        uint112 reserve1,
-        uint32 blockTimestampLast
-    );
-
-    function price0CumulativeLast() external view returns (uint256);
-
-    function price1CumulativeLast() external view returns (uint256);
-
-    function kLast() external view returns (uint256);
-
-    function mint(address to) external returns (uint256 liquidity);
-
-    function burn(address to) external returns (uint256 amount0, uint256 amount1);
-
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to
-    ) external;
-
-    function skim(address to) external;
-
-    function sync() external;
-
-    function initialize(address, address) external;
-}
-
-interface IGameSwapBEP20 {
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    function name() external pure returns (string memory);
-
-    function symbol() external pure returns (string memory);
-
-    function decimals() external pure returns (uint8);
-
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address owner) external view returns (uint256);
-
-    function allowance(address owner, address spender) external view returns (uint256);
-
-    function approve(address spender, uint256 value) external returns (bool);
-
-    function transfer(address to, uint256 value) external returns (bool);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-
-    function nonces(address owner) external view returns (uint256);
-
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-}
-// SPDX-License-Identifier: MIT
-
-
-/**
- * @dev Wrappers over Solidity's arithmetic operations with added overflow
- * checks.
- *
- * Arithmetic operations in Solidity wrap on overflow. This can easily result
- * in bugs, because programmers usually assume that an overflow raises an
- * error, which is the standard behavior in high level programming languages.
- * `SafeMath` restores this intuition by reverting the transaction when an
- * operation overflows.
- *
- * Using this library instead of the unchecked operations eliminates an entire
- * class of bugs, so it's recommended to use it always.
- */
-library SafeMath {
-    /**
-     * @dev Returns the addition of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `+` operator.
-     *
-     * Requirements:
-     *
-     * - Addition cannot overflow.
-     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        require(c >= a, 'SafeMath: addition overflow');
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return sub(a, b, 'SafeMath: subtraction overflow');
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        require(b <= a, errorMessage);
-        uint256 c = a - b;
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `*` operator.
-     *
-     * Requirements:
-     *
-     * - Multiplication cannot overflow.
-     */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-        // benefit is lost if 'b' is also tested.
-        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-        if (a == 0) {
-            return 0;
-        }
-
-        uint256 c = a * b;
-        require(c / a == b, 'SafeMath: multiplication overflow');
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return div(a, b, 'SafeMath: division by zero');
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        require(b > 0, errorMessage);
-        uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        return mod(a, b, 'SafeMath: modulo by zero');
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts with custom message when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        require(b != 0, errorMessage);
-        return a % b;
-    }
-
-    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
-        z = x < y ? x : y;
-    }
-
-    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
-    function sqrt(uint256 y) internal pure returns (uint256 z) {
-        if (y > 3) {
-            z = y;
-            uint256 x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
-    }
-}
-
-// a library for handling binary fixed point numbers (https://en.wikipedia.org/wiki/Q_(number_format))
-
-// range: [0, 2**112 - 1]
-// resolution: 1 / 2**112
-
-library UQ112x112 {
-    uint224 constant Q112 = 2**112;
-
-    // encode a uint112 as a UQ112x112
-    function encode(uint112 y) internal pure returns (uint224 z) {
-        z = uint224(y) * Q112; // never overflows
-    }
-
-    // divide a UQ112x112 by a uint112, returning a UQ112x112
-    function uqdiv(uint224 x, uint112 y) internal pure returns (uint224 z) {
-        z = x / uint224(y);
-    }
-}
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-
-interface IBEP20 {
-    /**
-     * @dev Returns the amount of tokens in existence.
-     */
-    function totalSupply() external view returns (uint256);
-
-    /**
-     * @dev Returns the token decimals.
-     */
-    function decimals() external view returns (uint8);
-
-    /**
-     * @dev Returns the token symbol.
-     */
-    function symbol() external view returns (string memory);
-
-    /**
-     * @dev Returns the token name.
-     */
-    function name() external view returns (string memory);
-
-    /**
-     * @dev Returns the bep token owner.
-     */
-    function getOwner() external view returns (address);
-
-    /**
-     * @dev Returns the amount of tokens owned by `account`.
-     */
-    function balanceOf(address account) external view returns (uint256);
-
-    /**
-     * @dev Moves `amount` tokens from the caller's account to `recipient`.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transfer(address recipient, uint256 amount) external returns (bool);
-
-    /**
-     * @dev Returns the remaining number of tokens that `spender` will be
-     * allowed to spend on behalf of `owner` through {transferFrom}. This is
-     * zero by default.
-     *
-     * This value changes when {approve} or {transferFrom} are called.
-     */
-    function allowance(address _owner, address spender) external view returns (uint256);
-
-    /**
-     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * IMPORTANT: Beware that changing an allowance with this method brings the risk
-     * that someone may use both the old and the new allowance by unfortunate
-     * transaction ordering. One possible solution to mitigate this race
-     * condition is to first reduce the spender's allowance to 0 and set the
-     * desired value afterwards:
-     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-     *
-     * Emits an {Approval} event.
-     */
-    function approve(address spender, uint256 amount) external returns (bool);
-
-    /**
-     * @dev Moves `amount` tokens from `sender` to `recipient` using the
-     * allowance mechanism. `amount` is then deducted from the caller's
-     * allowance.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-
-    /**
-     * @dev Emitted when `value` tokens are moved from one account (`from`) to
-     * another (`to`).
-     *
-     * Note that `value` may be zero.
-     */
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    /**
-     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
-     * a call to {approve}. `value` is the new allowance.
-     */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-}
+import "./interfaces/IGameSwapBEP20.sol";
+import "./interfaces/IGameSwapPair.sol";
+import "./interfaces/IGameSwapFactory.sol";
+import "./interfaces/IBEP20.sol";
+import "./library/SafeMath.sol";
+import "./library/UQ112x112.sol";
 
 contract GameSwapBEP20 is IGameSwapBEP20 {
     using SafeMath for uint256;
 
-    string public constant name = 'DWARF LPs';
-    string public constant symbol = 'DLP';
-    uint8 public constant decimals = 18;
-    uint256 public totalSupply;
-    mapping(address => uint256) public balanceOf;
-    mapping(address => mapping(address => uint256)) public allowance;
+    string private constant _name = 'DWARF LPs';
+    string private constant _symbol = 'DLP';
+    uint8 private constant _decimals = 18;
+    uint256 private _totalSupply;
+    mapping(address => uint256) private _balanceOf;
+    mapping(address => mapping(address => uint256)) private _allowance;
 
-    bytes32 public DOMAIN_SEPARATOR;
+    bytes32 private _DOMAIN_SEPARATOR;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
-    mapping(address => uint256) public nonces;
+    bytes32 private constant _PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+    mapping(address => uint256) private _nonces;
 
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    constructor() public {
+    constructor() {
         uint256 chainId;
         assembly {
-            chainId := chainid
+            chainId := chainid()
         }
-        DOMAIN_SEPARATOR = keccak256(
+        _DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
-                keccak256(bytes(name)),
+                keccak256(bytes(_name)),
                 keccak256(bytes('1')),
                 chainId,
                 address(this)
@@ -499,15 +40,51 @@ contract GameSwapBEP20 is IGameSwapBEP20 {
         );
     }
 
+    function name() external override pure returns (string memory) {
+        return _name;
+    }
+
+    function symbol() external override pure returns (string memory) {
+        return _symbol;
+    }
+
+    function decimals() external override pure returns (uint8) {
+        return _decimals;
+    }
+
+    function totalSupply() public override view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address owner) public override view returns (uint256) {
+        return _balanceOf[owner];
+    }
+
+    function nonces(address owner) external override view returns (uint256) {
+        return _nonces[owner];
+    }
+
+    function allowance(address owner, address spender) external override view returns (uint256) {
+        return _allowance[owner][spender];
+    }
+
+    function DOMAIN_SEPARATOR() external override view returns (bytes32) {
+        return _DOMAIN_SEPARATOR;
+    }
+
+    function PERMIT_TYPEHASH() external override pure returns (bytes32) {
+        return _PERMIT_TYPEHASH;
+    }
+
     function _mint(address to, uint256 value) internal {
-        totalSupply = totalSupply.add(value);
-        balanceOf[to] = balanceOf[to].add(value);
+        _totalSupply = _totalSupply.add(value);
+        _balanceOf[to] = _balanceOf[to].add(value);
         emit Transfer(address(0), to, value);
     }
 
     function _burn(address from, uint256 value) internal {
-        balanceOf[from] = balanceOf[from].sub(value);
-        totalSupply = totalSupply.sub(value);
+        _balanceOf[from] = _balanceOf[from].sub(value);
+        _totalSupply = _totalSupply.sub(value);
         emit Transfer(from, address(0), value);
     }
 
@@ -516,7 +93,7 @@ contract GameSwapBEP20 is IGameSwapBEP20 {
         address spender,
         uint256 value
     ) private {
-        allowance[owner][spender] = value;
+        _allowance[owner][spender] = value;
         emit Approval(owner, spender, value);
     }
 
@@ -525,17 +102,24 @@ contract GameSwapBEP20 is IGameSwapBEP20 {
         address to,
         uint256 value
     ) private {
-        balanceOf[from] = balanceOf[from].sub(value);
-        balanceOf[to] = balanceOf[to].add(value);
+        require(from != address(0), "GameSwapBEP20: transfer from the zero address");
+        require(to != address(0), "GameSwapBEP20: transfer to the zero address");
+
+        uint256 senderBalance = _balanceOf[from];
+        require(senderBalance >= value, "GameSwapBEP20: transfer amount exceeds balance");
+
+        _balanceOf[from] = senderBalance.sub(value);
+        _balanceOf[to] = _balanceOf[to].add(value);
+
         emit Transfer(from, to, value);
     }
 
-    function approve(address spender, uint256 value) external returns (bool) {
+    function approve(address spender, uint256 value) external override returns (bool) {
         _approve(msg.sender, spender, value);
         return true;
     }
 
-    function transfer(address to, uint256 value) external returns (bool) {
+    function transfer(address to, uint256 value) external override returns (bool) {
         _transfer(msg.sender, to, value);
         return true;
     }
@@ -544,11 +128,13 @@ contract GameSwapBEP20 is IGameSwapBEP20 {
         address from,
         address to,
         uint256 value
-    ) external returns (bool) {
-        if (allowance[from][msg.sender] != uint256(-1)) {
-            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
-        }
+    ) external override returns (bool) {
         _transfer(from, to, value);
+
+        uint256 currentAllowance = _allowance[from][msg.sender];
+        require(currentAllowance >= value, "GameSwapBEP20: transfer amount exceeds allowance");
+        _allowance[from][msg.sender] = _allowance[from][msg.sender].sub(value);
+                
         return true;
     }
 
@@ -560,13 +146,13 @@ contract GameSwapBEP20 is IGameSwapBEP20 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external {
+    ) external override {
         require(deadline >= block.timestamp, 'GameSwapBEP20: EXPIRED');
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
-                DOMAIN_SEPARATOR,
-                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+                _DOMAIN_SEPARATOR,
+                keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _nonces[owner]++, deadline))
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
@@ -579,20 +165,20 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
     using SafeMath for uint256;
     using UQ112x112 for uint224;
 
-    uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 private constant _MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
-    address public factory;
-    address public token0;
-    address public token1;
+    address private _factory;
+    address private _token0;
+    address private _token1;
 
     uint112 private reserve0; // uses single storage slot, accessible via getReserves
     uint112 private reserve1; // uses single storage slot, accessible via getReserves
     uint32 private blockTimestampLast; // uses single storage slot, accessible via getReserves
 
-    uint256 public price0CumulativeLast;
-    uint256 public price1CumulativeLast;
-    uint256 public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
+    uint256 private _price0CumulativeLast;
+    uint256 private _price1CumulativeLast;
+    uint256 private _kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
     uint256 private unlocked = 1;
     modifier lock() {
@@ -602,8 +188,48 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
         unlocked = 1;
     }
 
+    constructor() {
+        _factory = msg.sender;
+    }
+
+    // called once by the factory at time of deployment
+    function initialize(address token0_, address token1_) external override {
+        require(msg.sender == _factory, 'GameSwapPair: FORBIDDEN'); // sufficient check
+        _token0 = token0_;
+        _token1 = token1_;
+    }
+
+    function MINIMUM_LIQUIDITY() external override pure returns (uint256) {
+        return _MINIMUM_LIQUIDITY;
+    }
+
+    function factory() external override view returns (address) {
+        return _factory;
+    }
+
+    function token0() external override view returns (address) {
+        return _token0;
+    }
+
+    function token1() external override view returns (address) {
+        return _token1;
+    }
+
+    function price0CumulativeLast() external override view returns (uint256) {
+        return _price0CumulativeLast;
+    }
+
+    function price1CumulativeLast() external override view returns (uint256) {
+        return _price1CumulativeLast;
+    }
+
+    function kLast() external override view returns (uint256) {
+        return _kLast;
+    }
+
     function getReserves()
     public
+    override
     view
     returns (
         uint112 _reserve0,
@@ -625,29 +251,6 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'GameSwapPair: TRANSFER_FAILED');
     }
 
-    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint256 amount0In,
-        uint256 amount1In,
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    constructor() public {
-        factory = msg.sender;
-    }
-
-    // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external {
-        require(msg.sender == factory, 'GameSwapPair: FORBIDDEN'); // sufficient check
-        token0 = _token0;
-        token1 = _token1;
-    }
-
     // update reserves and, on the first call per block, price accumulators
     function _update(
         uint256 balance0,
@@ -655,13 +258,13 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
         uint112 _reserve0,
         uint112 _reserve1
     ) private {
-        require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'GameSwapPair: OVERFLOW');
+        require(balance0 <= type(uint112).max && balance1 <= type(uint112).max, 'GameSwapPair: OVERFLOW');
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
             // * never overflows, and + overflow is desired
-            price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
-            price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+            _price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
+            _price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
         }
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
@@ -671,38 +274,38 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
 
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
-        address feeTo = IGameSwapFactory(factory).feeTo();
+        address feeTo = IGameSwapFactory(_factory).feeTo();
         feeOn = feeTo != address(0);
-        uint256 _kLast = kLast; // gas savings
+        uint256 __kLast = _kLast; // gas savings
         if (feeOn) {
-            if (_kLast != 0) {
+            if (__kLast != 0) {
                 uint256 rootK = SafeMath.sqrt(uint256(_reserve0).mul(_reserve1));
-                uint256 rootKLast = SafeMath.sqrt(_kLast);
+                uint256 rootKLast = SafeMath.sqrt(__kLast);
                 if (rootK > rootKLast) {
-                    uint256 numerator = totalSupply.mul(rootK.sub(rootKLast));
+                    uint256 numerator = totalSupply().mul(rootK.sub(rootKLast));
                     uint256 denominator = rootK.mul(5).add(rootKLast);
                     uint256 liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
             }
-        } else if (_kLast != 0) {
-            kLast = 0;
+        } else if (__kLast != 0) {
+            _kLast = 0;
         }
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) external lock returns (uint256 liquidity) {
+    function mint(address to) external override lock returns (uint256 liquidity) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-        uint256 balance0 = IBEP20(token0).balanceOf(address(this));
-        uint256 balance1 = IBEP20(token1).balanceOf(address(this));
+        uint256 balance0 = IBEP20(_token0).balanceOf(address(this));
+        uint256 balance1 = IBEP20(_token1).balanceOf(address(this));
         uint256 amount0 = balance0.sub(_reserve0);
         uint256 amount1 = balance1.sub(_reserve1);
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
-        uint256 _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
-            liquidity = SafeMath.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-            _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
+            liquidity = SafeMath.sqrt(amount0.mul(amount1)).sub(_MINIMUM_LIQUIDITY);
+            _mint(address(0), _MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
             liquidity = SafeMath.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
         }
@@ -710,32 +313,32 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
         _mint(to, liquidity);
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
+        if (feeOn) _kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function burn(address to) external lock returns (uint256 amount0, uint256 amount1) {
+    function burn(address to) external override lock returns (uint256 amount0, uint256 amount1) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-        address _token0 = token0; // gas savings
-        address _token1 = token1; // gas savings
-        uint256 balance0 = IBEP20(_token0).balanceOf(address(this));
-        uint256 balance1 = IBEP20(_token1).balanceOf(address(this));
-        uint256 liquidity = balanceOf[address(this)];
+        address __token0 = _token0; // gas savings
+        address __token1 = _token1; // gas savings
+        uint256 balance0 = IBEP20(__token0).balanceOf(address(this));
+        uint256 balance1 = IBEP20(__token1).balanceOf(address(this));
+        uint256 liquidity = balanceOf(address(this));
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
-        uint256 _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'GameSwapPair: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
-        _safeTransfer(_token0, to, amount0);
-        _safeTransfer(_token1, to, amount1);
-        balance0 = IBEP20(_token0).balanceOf(address(this));
-        balance1 = IBEP20(_token1).balanceOf(address(this));
+        _safeTransfer(__token0, to, amount0);
+        _safeTransfer(__token1, to, amount1);
+        balance0 = IBEP20(__token0).balanceOf(address(this));
+        balance1 = IBEP20(__token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
+        if (feeOn) _kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
@@ -744,7 +347,7 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
         uint256 amount0Out,
         uint256 amount1Out,
         address to
-    ) external lock {
+    ) external override lock {
         require(amount0Out > 0 || amount1Out > 0, 'GameSwapPair: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'GameSwapPair: INSUFFICIENT_LIQUIDITY');
@@ -753,13 +356,13 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
         uint256 balance1;
         {
             // scope for _token{0,1}, avoids stack too deep errors
-            address _token0 = token0;
-            address _token1 = token1;
-            require(to != _token0 && to != _token1, 'GameSwapPair: INVALID_TO');
-            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-            balance0 = IBEP20(_token0).balanceOf(address(this));
-            balance1 = IBEP20(_token1).balanceOf(address(this));
+            address __token0 = _token0;
+            address __token1 = _token1;
+            require(to != __token0 && to != __token1, 'GameSwapPair: INVALID_TO');
+            if (amount0Out > 0) _safeTransfer(__token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(__token1, to, amount1Out); // optimistically transfer tokens
+            balance0 = IBEP20(__token0).balanceOf(address(this));
+            balance1 = IBEP20(__token1).balanceOf(address(this));
         }
         uint256 amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
@@ -779,63 +382,77 @@ contract GameSwapPair is IGameSwapPair, GameSwapBEP20 {
     }
 
     // force balances to match reserves
-    function skim(address to) external lock {
-        address _token0 = token0; // gas savings
-        address _token1 = token1; // gas savings
-        _safeTransfer(_token0, to, IBEP20(_token0).balanceOf(address(this)).sub(reserve0));
-        _safeTransfer(_token1, to, IBEP20(_token1).balanceOf(address(this)).sub(reserve1));
+    function skim(address to) external override lock {
+        address __token0 = _token0; // gas savings
+        address __token1 = _token1; // gas savings
+        _safeTransfer(__token0, to, IBEP20(__token0).balanceOf(address(this)).sub(reserve0));
+        _safeTransfer(__token1, to, IBEP20(__token1).balanceOf(address(this)).sub(reserve1));
     }
 
     // force reserves to match balances
-    function sync() external lock {
-        _update(IBEP20(token0).balanceOf(address(this)), IBEP20(token1).balanceOf(address(this)), reserve0, reserve1);
+    function sync() external override lock {
+        _update(IBEP20(_token0).balanceOf(address(this)), IBEP20(_token1).balanceOf(address(this)), reserve0, reserve1);
     }
 }
 
 contract GameSwapFactory is IGameSwapFactory {
-    address public feeTo;
-    address public feeToSetter;
+    address private _feeTo;
+    address private _feeToSetter;
 
-    mapping(address => mapping(address => address)) public getPair;
-    address[] public allPairs;
-    bytes32 public constant INIT_CODE_PAIR_HASH = keccak256(abi.encodePacked(type(GameSwapPair).creationCode));
+    mapping(address => mapping(address => address)) private _getPair;
+    address[] private _allPairs;
+    bytes32 private constant INIT_CODE_PAIR_HASH = keccak256(abi.encodePacked(type(GameSwapPair).creationCode));
 
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
-
-    constructor() public {
-        feeToSetter = msg.sender;
+    constructor() {
+        _feeToSetter = msg.sender;
         // default feeTo is feeToSetter
-        feeTo = feeToSetter;
+        _feeTo = _feeToSetter;
     }
 
-    function allPairsLength() external view returns (uint256) {
-        return allPairs.length;
+    function feeTo() external override view returns (address) {
+        return _feeTo;
     }
 
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
+    function feeToSetter() external override view returns (address) {
+        return _feeToSetter;
+    }
+
+    function getPair(address tokenA, address tokenB) external override view returns (address pair) {
+        return _getPair[tokenA][tokenB];
+    }
+
+    function allPairs(uint256 index) external override view returns (address pair) {
+        return _allPairs[index];
+    }
+
+    function allPairsLength() external override view returns (uint256) {
+        return _allPairs.length;
+    }
+
+    function createPair(address tokenA, address tokenB) external override returns (address pair) {
         require(tokenA != tokenB, 'GameSwapFactory: IDENTICAL_ADDRESSES');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'GameSwapFactory: ZERO_ADDRESS');
-        require(getPair[token0][token1] == address(0), 'GameSwapFactory: PAIR_EXISTS'); // single check is sufficient
+        require(_getPair[token0][token1] == address(0), 'GameSwapFactory: PAIR_EXISTS'); // single check is sufficient
         bytes memory bytecode = type(GameSwapPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
         IGameSwapPair(pair).initialize(token0, token1);
-        getPair[token0][token1] = pair;
-        getPair[token1][token0] = pair; // populate mapping in the reverse direction
-        allPairs.push(pair);
-        emit PairCreated(token0, token1, pair, allPairs.length);
+        _getPair[token0][token1] = pair;
+        _getPair[token1][token0] = pair; // populate mapping in the reverse direction
+        _allPairs.push(pair);
+        emit PairCreated(token0, token1, pair, _allPairs.length);
     }
 
-    function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeToSetter, 'GameSwapFactory: FORBIDDEN');
-        feeTo = _feeTo;
+    function setFeeTo(address feeTo_) external override {
+        require(msg.sender == _feeToSetter, 'GameSwapFactory: FORBIDDEN');
+        _feeTo = feeTo_;
     }
 
-    function setFeeToSetter(address _feeToSetter) external {
-        require(msg.sender == feeToSetter, 'GameSwapFactory: FORBIDDEN');
-        feeToSetter = _feeToSetter;
+    function setFeeToSetter(address feeToSetter_) external override {
+        require(msg.sender == _feeToSetter, 'GameSwapFactory: FORBIDDEN');
+        _feeToSetter = feeToSetter_;
     }
 }
