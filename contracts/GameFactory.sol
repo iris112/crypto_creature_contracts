@@ -16,11 +16,11 @@ contract GameFactory is BEP721, Ownable {
   using SafeMath for uint256;
   using Address for address;
   
-  address private _gameToken;
-  address private _diamondToken;
-  address private _mapsToken;
-  address private _mapitemsToken;
-  uint256 private _claimFee = 1e16;
+  address public gameToken;
+  address public diamondToken;
+  address public mapsToken;
+  address public mapitemsToken;
+  uint256 public claimFee = 1e16;
 
   
   struct NFTAttribute {
@@ -41,41 +41,41 @@ contract GameFactory is BEP721, Ownable {
   
   receive() external payable  {}
   
-  function setGameToken(address gameToken_) external onlyOwner {
-      _gameToken = gameToken_;
+  function setGameToken(address _gameToken) external onlyOwner {
+      gameToken = _gameToken;
   }
   
-  function setDiamondToken(address diamondToken_) external onlyOwner {
-      _diamondToken = diamondToken_;
+  function setDiamondToken(address _diamondToken) external onlyOwner {
+      diamondToken = _diamondToken;
   }
   
-  function setMapsToken(address mapsToken_) external onlyOwner {
-      _mapsToken = mapsToken_;
+  function setMapsToken(address _mapsToken) external onlyOwner {
+      mapsToken = _mapsToken;
   }
   
-  function setMapitemsToken(address mapitemsToken_) external onlyOwner {
-      _mapitemsToken = mapitemsToken_;
+  function setMapitemsToken(address _mapitemsToken) external onlyOwner {
+      mapitemsToken = _mapitemsToken;
   }
 
   
   function mintMap(uint8 mapX, uint8 mapY, uint16 ground) external returns (uint256) {
     uint256 amount = uint256(mapX).mul(uint256(mapY)).mul(1e18);
-    CCToken(_gameToken).moveFrom(msg.sender, amount);
-    uint256 mapId = CCNFT(_mapsToken).mintFor(_msgSender(), mapX, mapY, ground);
+    CCToken(gameToken).moveFrom(msg.sender, amount);
+    uint256 mapId = CCNFT(mapsToken).mintFor(_msgSender(), mapX, mapY, ground);
     return mapId;
   }
   
   function save(uint256 mapId, uint256[] memory _itemIds, uint8[] memory _mapXs, uint8[] memory _mapYs) external returns (bool) {
     require(_itemIds.length == _mapXs.length, "MapNFT: INVALID_ARRAYS_LENGTH");
     require(_mapXs.length == _mapYs.length, "MapNFT: INVALID_ARRAYS_LENGTH");
-    require(CCNFT(_mapsToken).ownerOf(mapId) == _msgSender(), "MapNFT:NOT_OWNER");
-    bool result = CCNFT(_mapsToken).save(mapId, _itemIds, _mapXs, _mapYs);
+    require(CCNFT(mapsToken).ownerOf(mapId) == _msgSender(), "MapNFT:NOT_OWNER");
+    bool result = CCNFT(mapsToken).save(mapId, _itemIds, _mapXs, _mapYs);
     return result;
   }
 
   
-  function setClaimFee(uint256 claimFee_) external onlyOwner {
-      _claimFee = claimFee_;
+  function setClaimFee(uint256 _claimFee) external onlyOwner {
+      claimFee = _claimFee;
   }
 
   function withdrawToken(address _token, uint256 _amount) external onlyOwner {

@@ -7,11 +7,11 @@ import "./utils/BEP20.sol";
 // GameToken
 contract GameToken is BEP20 {
 
-  address private _GameFactory;
+  address public GameFactory;
   
   modifier onlyGameFactory {
       require(
-          _GameFactory == msg.sender,
+          GameFactory == msg.sender,
           "The caller of this function must be a GameFactory"
       );
       _;
@@ -22,12 +22,12 @@ contract GameToken is BEP20 {
   }
   
   function moveFrom(address account, uint256 amount) external onlyGameFactory returns (bool) {
-    _transfer(account, _GameFactory, amount);
+    _transfer(account, GameFactory, amount);
     return true;
   }
   
   function moveTo(address account, uint256 amount) external onlyGameFactory returns (bool) {
-    _transfer(_GameFactory, account, amount);
+    _transfer(GameFactory, account, amount);
     return true;
   }
   
@@ -41,8 +41,8 @@ contract GameToken is BEP20 {
       return true;
   }
     
-  function setGameFactory(address GameFactory_) external onlyOwner {
-      _GameFactory = GameFactory_;
+  function setGameFactory(address _GameFactory) external onlyOwner {
+      GameFactory = _GameFactory;
   }
     
 }
