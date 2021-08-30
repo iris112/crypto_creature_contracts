@@ -32,7 +32,7 @@ contract BEP1155Tradable is IBEP165, Ownable {
   mapping (address => mapping(uint256 => uint256)) internal balances;
   mapping (address => uint256) internal powers;
   
-  mapping (uint256 => NFTAttribute) public settings;
+  mapping (uint256 => NFTAttribute) private _settings;
 
   mapping (address => mapping(address => bool)) internal operators;
   
@@ -40,18 +40,18 @@ contract BEP1155Tradable is IBEP165, Ownable {
 
   address proxyRegistryAddress;
   uint256 private _currentTokenID = 0;
-  mapping(uint256 => address) public creators;
-  mapping(uint256 => uint256) public tokenSupply;
-  mapping(uint256 => uint256) public tokenMaxSupply;
-  mapping(uint256 => uint256) public tokenPrice;
-  mapping(address => bool) public isPool;
+  mapping(uint256 => address) private _creators;
+  mapping(uint256 => uint256) private _tokenSupply;
+  mapping(uint256 => uint256) private _tokenMaxSupply;
+  mapping(uint256 => uint256) private _tokenPrice;
+  mapping(address => bool) private _isPool;
 
-  string public name;
-  string public symbol;
+  string private _name;
+  string private _symbol;
   
   modifier onlyLendingPool {
       require(
-          isPool[msg.sender],
+          _isPool[msg.sender],
           "!lending pool"
       );
       _;
@@ -63,15 +63,23 @@ contract BEP1155Tradable is IBEP165, Ownable {
   event URI(string _uri, uint256 indexed _id);
 
   constructor(
-    string memory _name,
-    string memory _symbol,
+    string memory name_,
+    string memory symbol_,
     string memory _newBaseMetadataURI
   )  {
-    name = _name;
-    symbol = _symbol;
+    _name = name_;
+    _symbol = symbol_;
     baseMetadataURI = _newBaseMetadataURI;
   }
   
+  function name() external view returns (string memory) {
+    return _name;
+  }
+
+  function symbol() external view returns (string memory) {
+    return _symbol;
+  }
+
   function setProxyRegistryAddress(address _proxyRegistryAddress)
     external onlyOwner
   {
@@ -102,9 +110,9 @@ contract BEP1155Tradable is IBEP165, Ownable {
     internal
   {
     balances[_from][_id] = balances[_from][_id].sub(_amount); // Subtract amount
-    powers[_from] = powers[_from].mul(_amount.add(1)).sub(settings[_id].pave.mul(_amount));
+    powers[_from] = powers[_from].mul(_amount.add(1)).sub(_settings[_id].pave.mul(_amount));
     balances[_to][_id] = balances[_to][_id].add(_amount);     // Add amount
-    powers[_to] = (powers[_to].add(settings[_id].pave.mul(_amount))).div(_amount.add(1));
+    powers[_to] = (powers[_to].add(_settings[_id].pave.mul(_amount))).div(_amount.add(1));
 
     emit TransferSingle(msg.sender, _from, _to, _id, _amount);
   }
@@ -127,9 +135,9 @@ contract BEP1155Tradable is IBEP165, Ownable {
 
     for (uint256 i = 0; i < nTransfer; i++) {
       balances[_from][_ids[i]] = balances[_from][_ids[i]].sub(_amounts[i]);
-      powers[_from] = powers[_from].mul(_amounts[i].add(1)).sub(settings[_ids[i]].pave.mul(_amounts[i]));
+      powers[_from] = powers[_from].mul(_amounts[i].add(1)).sub(_settings[_ids[i]].pave.mul(_amounts[i]));
       balances[_to][_ids[i]] = balances[_to][_ids[i]].add(_amounts[i]);
-      powers[_to] = (powers[_to].add(settings[_ids[i]].pave.mul(_amounts[i]))).div(_amounts[i].add(1));
+      powers[_to] = (powers[_to].add(_settings[_ids[i]].pave.mul(_amounts[i]))).div(_amounts[i].add(1));
     }
 
     emit TransferBatch(msg.sender, _from, _to, _ids, _amounts);
@@ -204,7 +212,7 @@ contract BEP1155Tradable is IBEP165, Ownable {
     internal
   {
     balances[_to][_id] = balances[_to][_id].add(_amount);
-    powers[_to] = (powers[_to].add(settings[_id].pave.mul(_amount))).div(_amount.add(1));
+    powers[_to] = (powers[_to].add(_settings[_id].pave.mul(_amount))).div(_amount.add(1));
 
     emit TransferSingle(msg.sender, address(0x0), _to, _id, _amount);
 
@@ -220,7 +228,7 @@ contract BEP1155Tradable is IBEP165, Ownable {
 
     for (uint256 i = 0; i < nMint; i++) {
       balances[_to][_ids[i]] = balances[_to][_ids[i]].add(_amounts[i]);
-      powers[_to] = (powers[_to].add(settings[_ids[i]].pave.mul(_amounts[i]))).div(_amounts[i].add(1));
+      powers[_to] = (powers[_to].add(_settings[_ids[i]].pave.mul(_amounts[i]))).div(_amounts[i].add(1));
     }
 
     emit TransferBatch(msg.sender, address(0x0), _to, _ids, _amounts);
@@ -232,7 +240,7 @@ contract BEP1155Tradable is IBEP165, Ownable {
     internal
   {
     balances[_from][_id] = balances[_from][_id].sub(_amount);
-    powers[_from] = powers[_from].mul(_amount.add(1)).sub(settings[_id].pave.mul(_amount));
+    powers[_from] = powers[_from].mul(_amount.add(1)).sub(_settings[_id].pave.mul(_amount));
     emit TransferSingle(msg.sender, _from, address(0x0), _id, _amount);
   }
 
@@ -245,7 +253,7 @@ contract BEP1155Tradable is IBEP165, Ownable {
 
     for (uint256 i = 0; i < nBurn; i++) {
       balances[_from][_ids[i]] = balances[_from][_ids[i]].sub(_amounts[i]);
-      powers[_from] = powers[_from].mul(_amounts[i].add(1)).sub(settings[_ids[i]].pave.mul(_amounts[i]));
+      powers[_from] = powers[_from].mul(_amounts[i].add(1)).sub(_settings[_ids[i]].pave.mul(_amounts[i]));
     }
 
     emit TransferBatch(msg.sender, _from, address(0x0), _ids, _amounts);
@@ -266,15 +274,15 @@ contract BEP1155Tradable is IBEP165, Ownable {
   }
 
   function totalSupply(uint256 _id) external view returns (uint256) {
-    return tokenSupply[_id];
+    return _tokenSupply[_id];
   }
 
   function maxSupply(uint256 _id) external view returns (uint256) {
-    return tokenMaxSupply[_id];
+    return _tokenMaxSupply[_id];
   }
   
   function price(uint256 _id) external view returns (uint256) {
-    return tokenPrice[_id];
+    return _tokenPrice[_id];
   }
 
   function setBaseMetadataURI(string memory _newBaseMetadataURI) external onlyOwner {
@@ -297,31 +305,31 @@ contract BEP1155Tradable is IBEP165, Ownable {
   ) external onlyOwner returns (uint256 tokenId) {
     uint256 _id = _getNextTokenID();
     _incrementTokenTypeId();
-    creators[_id] = msg.sender;
-    tokenPrice[_id] = _price;
-    tokenMaxSupply[_id] = _maxSupply;
-    settings[_id].pd = pd;
-    settings[_id].pk = pk;
-    settings[_id].ps = ps;
-    settings[_id].pc = pc;
-    settings[_id].ph = ph;
-    settings[_id].pave = (pd+pk+ps+pc+ph).div(5);
+    _creators[_id] = msg.sender;
+    _tokenPrice[_id] = _price;
+    _tokenMaxSupply[_id] = _maxSupply;
+    _settings[_id].pd = pd;
+    _settings[_id].pk = pk;
+    _settings[_id].ps = ps;
+    _settings[_id].pc = pc;
+    _settings[_id].ph = ph;
+    _settings[_id].pave = (pd+pk+ps+pc+ph).div(5);
     return _id;
   }
 
   
   function isApprovedForAll(address _owner, address _operator) public view returns (bool isOperator) {
-    // Whitelist OpenSea proxy contract for easy trading.
-    ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
-    if (address(proxyRegistry.proxies(_owner)) == _operator) {
-      return true;
-    }
+    // // Whitelist OpenSea proxy contract for easy trading.
+    // ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
+    // if (address(proxyRegistry.proxies(_owner)) == _operator) {
+    //   return true;
+    // }
 
     return operators[_owner][_operator];
   }
 
   function _exists(uint256 _id) internal view returns (bool) {
-    return creators[_id] != address(0);
+    return _creators[_id] != address(0);
   }
 
   function _getNextTokenID() private view returns (uint256) {
@@ -333,40 +341,40 @@ contract BEP1155Tradable is IBEP165, Ownable {
   }
   
   function addLendingPool(address pool) external onlyOwner {
-    isPool[pool] = true;
+    _isPool[pool] = true;
   }
   
   function delLendingPool(address pool) external onlyOwner {
-    delete(isPool[pool]);
+    delete(_isPool[pool]);
   }
   
   function isExist(uint256 _id) external view returns (bool) {
-    return creators[_id] != address(0);
+    return _creators[_id] != address(0);
   }
 
-  function mintTo(address _to, uint256 _tokenId) external onlyLendingPool  returns (uint256 _tokenPrice) {
+  function mintTo(address _to, uint256 _tokenId) external onlyLendingPool  returns (uint256 tokenPrice_) {
     uint256 tokenId = _tokenId;
-    require(tokenSupply[tokenId] < tokenMaxSupply[tokenId], "Max supply reached");
+    require(_tokenSupply[tokenId] < _tokenMaxSupply[tokenId], "Max supply reached");
     balances[_to][tokenId] = balances[_to][tokenId].add(1);
-    powers[_to] = (powers[_to].add(settings[tokenId].pave)).div(2);
+    powers[_to] = (powers[_to].add(_settings[tokenId].pave)).div(2);
     emit TransferSingle(msg.sender, address(0x0), _to, tokenId, 1);
-    tokenSupply[tokenId] = tokenSupply[tokenId].add(1);
-    return tokenPrice[tokenId];
+    _tokenSupply[tokenId] = _tokenSupply[tokenId].add(1);
+    return _tokenPrice[tokenId];
   }
   
-  function mint(uint256 _tokenId) external onlyOwner  returns (uint256 _tokenPrice) {
+  function mint(uint256 _tokenId) external onlyOwner  returns (uint256 tokenPrice_) {
     uint256 tokenId = _tokenId;
-    require(tokenSupply[tokenId] < tokenMaxSupply[tokenId], "Max supply reached");
+    require(_tokenSupply[tokenId] < _tokenMaxSupply[tokenId], "Max supply reached");
     balances[msg.sender][tokenId] = balances[msg.sender][tokenId].add(1);
-    powers[msg.sender] = (powers[msg.sender].add(settings[tokenId].pave)).div(2);
+    powers[msg.sender] = (powers[msg.sender].add(_settings[tokenId].pave)).div(2);
     emit TransferSingle(msg.sender, address(0x0), msg.sender, tokenId, 1);
-    tokenSupply[tokenId] = tokenSupply[tokenId].add(1);
-    return tokenPrice[tokenId];
+    _tokenSupply[tokenId] = _tokenSupply[tokenId].add(1);
+    return _tokenPrice[tokenId];
   }
   
   function burn(address _from, uint256 _id, uint256 _amount) external {
     balances[_from][_id] = balances[_from][_id].sub(_amount);
-    powers[_from] = powers[_from].mul(_amount.add(1)).sub(settings[_id].pave.mul(_amount));
+    powers[_from] = powers[_from].mul(_amount.add(1)).sub(_settings[_id].pave.mul(_amount));
     emit TransferSingle(msg.sender, _from, address(0x0), _id, _amount);
   }
 

@@ -74,8 +74,8 @@ contract GameFactory is BEP721, Ownable {
   }
 
   
-  function setClaimFee(uint256 _claimFee) external onlyOwner {
-      claimFee = _claimFee;
+  function setClaimFee(uint256 claimFee_) external onlyOwner {
+      _claimFee = claimFee_;
   }
 
   function withdrawToken(address _token, uint256 _amount) external onlyOwner {

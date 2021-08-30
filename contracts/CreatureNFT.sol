@@ -7,11 +7,11 @@ import "./utils/Ownable.sol";
 
 contract CreatureNFT is BEP721, Ownable {
 
-  address public GameFactory;
+  address private _GameFactory;
   
   modifier onlyGameFactory {
       require(
-          GameFactory == msg.sender,
+          _GameFactory == msg.sender,
           "The caller of this function must be a GameFactory"
       );
       _;
@@ -31,8 +31,8 @@ contract CreatureNFT is BEP721, Ownable {
       return true;
   }
     
-  function setGameFactory(address _GameFactory) external onlyOwner {
-      GameFactory = _GameFactory;
+  function setGameFactory(address GameFactory_) external onlyOwner {
+      _GameFactory = GameFactory_;
   }
 
 }

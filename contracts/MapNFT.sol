@@ -12,8 +12,8 @@ contract MapNFT is BEP721, Ownable {
   using Address for address;
 
 
-  address public GameFactory;
-  uint256 public lastId;
+  address private _GameFactory;
+  uint256 private _lastId;
   
   struct MapInfo {
       uint8 x;
@@ -21,12 +21,12 @@ contract MapNFT is BEP721, Ownable {
       uint16 ground;
   }
   
-  mapping(uint256 => MapInfo) public mapSize;
-  mapping(uint256 => mapping(uint8 => mapping(uint8 => uint256))) public mapObjects;
+  mapping(uint256 => MapInfo) private _mapSize;
+  mapping(uint256 => mapping(uint8 => mapping(uint8 => uint256))) private _mapObjects;
 
   modifier onlyGameFactory {
       require(
-          GameFactory == msg.sender,
+          _GameFactory == msg.sender,
           "The caller of this function must be a GameFactory"
       );
       _;
@@ -37,11 +37,11 @@ contract MapNFT is BEP721, Ownable {
   }
   
   function mint(uint8 mapX, uint8 mapY, uint16 ground) external onlyOwner {
-    _mint(msg.sender, lastId);
-    mapSize[lastId].x = mapX;
-    mapSize[lastId].y = mapY;
-    mapSize[lastId].ground = ground;
-    lastId++;
+    _mint(msg.sender, _lastId);
+    _mapSize[_lastId].x = mapX;
+    _mapSize[_lastId].y = mapY;
+    _mapSize[_lastId].ground = ground;
+    _lastId++;
   }
   
   function save(uint256 mapId, uint256[] memory _itemIds, uint8[] memory _mapXs, uint8[] memory _mapYs) external onlyGameFactory returns (bool) {
@@ -49,23 +49,23 @@ contract MapNFT is BEP721, Ownable {
     require(_mapXs.length == _mapYs.length, "MapNFT: INVALID_ARRAYS_LENGTH");
     uint256 nIter = _itemIds.length;
     for (uint256 i = 0; i < nIter; i++) {
-      mapObjects[mapId][_mapXs[i]][_mapYs[i]] = _itemIds[i];
+      _mapObjects[mapId][_mapXs[i]][_mapYs[i]] = _itemIds[i];
     }
     return true;
   }
   
   function mintFor(address account, uint8 mapX, uint8 mapY, uint16 ground) external onlyGameFactory returns (uint256) {
-    uint256 id = lastId;
+    uint256 id = _lastId;
     _mint(account, id);
-    mapSize[id].x = mapX;
-    mapSize[id].y = mapY;
-    mapSize[id].ground = ground;
-    lastId++;
+    _mapSize[id].x = mapX;
+    _mapSize[id].y = mapY;
+    _mapSize[id].ground = ground;
+    _lastId++;
     return id;
   }
     
-  function setGameFactory(address _GameFactory) external onlyOwner {
-      GameFactory = _GameFactory;
+  function setGameFactory(address GameFactory_) external onlyOwner {
+      _GameFactory = GameFactory_;
   }
 
 }
