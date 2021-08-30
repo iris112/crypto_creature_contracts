@@ -7,11 +7,11 @@ import "./utils/BEP20.sol";
 // DiamondToken
 contract DiamondToken is BEP20 {
 
-  address public GameFactory;
+  address private _GameFactory;
   
   modifier onlyGameFactory {
       require(
-          GameFactory == msg.sender,
+          _GameFactory == msg.sender,
           "The caller of this function must be a GameFactory"
       );
       _;
@@ -23,12 +23,12 @@ contract DiamondToken is BEP20 {
   
   
   function moveFrom(address account, uint256 amount) external onlyGameFactory returns (bool) {
-    _transfer(account, GameFactory, amount);
+    _transfer(account, _GameFactory, amount);
     return true;
   }
   
   function moveTo(address account, uint256 amount) external onlyGameFactory returns (bool) {
-    _transfer(GameFactory, account, amount);
+    _transfer(_GameFactory, account, amount);
     return true;
   }
   
@@ -42,8 +42,8 @@ contract DiamondToken is BEP20 {
       return true;
   }
     
-  function setGameFactory(address _GameFactory) external onlyOwner {
-      GameFactory = _GameFactory;
+  function setGameFactory(address GameFactory_) external onlyOwner {
+      _GameFactory = GameFactory_;
   }
     
 }
