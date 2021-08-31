@@ -373,6 +373,4 @@ contract BEP1155Tradable is IBEP165, Ownable {
   function totalExist() external view returns (uint256) {
     return _currentTokenID;
   }
-  
-
 }
