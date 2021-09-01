@@ -43,7 +43,6 @@ contract CreatureNFT is BEP721, Ownable {
     uint256 newTokenId = tokenIdCounter.current();
 
     _safeMint(minter, newTokenId);
-    _approve(GameFactory, newTokenId);
 
     return newTokenId;
   }

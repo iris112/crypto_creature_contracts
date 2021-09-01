@@ -67,7 +67,6 @@ contract MapNFT is BEP721, Ownable {
     uint256 newTokenId = tokenIdCounter.current();
 
     _safeMint(minter, newTokenId);
-    _approve(GameFactory, newTokenId);
 
     mapSize[newTokenId].x = mapX;
     mapSize[newTokenId].y = mapY;
