@@ -10,6 +10,7 @@ import "./interfaces/CCToken.sol";
 import "./interfaces/CCNFT.sol";
 import "./interfaces/IBEP20.sol";
 import "./interfaces/IBEP721.sol";
+import "./utils/BEP1155Tradable.sol";
 
 contract GameFactory is Ownable {
   using Strings for string;
@@ -44,18 +45,17 @@ contract GameFactory is Ownable {
     bool isForSale;
     bool isExist;
     address payable owner;
+    uint256 amount;
     uint256 price;
   }
 
-  event PriceItemAdded(address tokenAddress, uint256 tokenId, uint256 price);
-  event PriceItemRemoved(address tokenAddress, uint256 tokenId, uint256 price);
-  event PriceItemSold(address tokenAddress, uint256 tokenId, uint256 price);
+  event PriceItemAdded(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
+  event PriceItemRemoved(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
+  event PriceItemSold(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
 
   mapping (address => NFTAttribute) internal _settings;
 
-  constructor() BEP721("$DWARFNFT", "$DWARFNFT")  {  
-      _setBaseURI("https://RPC-URI.com/api/BEP721/");
-  }
+  constructor() {}
   
   receive() external payable  {}
   
@@ -110,16 +110,30 @@ contract GameFactory is Ownable {
   function buyItem(address tokenAddress, uint256 tokenId) external payable {
     TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
 
-    require(_msgSender() != address(0), "BuyItem: INVALID_ADDRESS");
-    require(detail.isForSale, "BuyItem: NOT_SELLING");
-    require(detail.owner != _msgSender(), "BuyItem: IMPOSSIBLE_FOR_OWNER");
-    require(msg.value >= detail.price, "BuyItem: LOWER_PRICE");
-
+    _checkBuyPossible(detail);
     detail.owner.transfer(msg.value);
     IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), tokenId);
     delete nftsForSale[tokenAddress][tokenId];
     
-    emit PriceItemSold(tokenAddress, tokenId, msg.value);
+    emit PriceItemSold(tokenAddress, tokenId, msg.value, 1);
+  }
+
+  function buyItemWithAmount(address tokenAddress, uint256 tokenId, uint256 amount) external payable {
+    TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
+
+    _checkBuyPossible(detail);
+    detail.owner.transfer(msg.value);
+    BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), tokenId, amount, "");
+    delete nftsForSale[tokenAddress][tokenId];
+    
+    emit PriceItemSold(tokenAddress, tokenId, msg.value, amount);
+  }
+
+  function _checkBuyPossible(TokenDetails memory detail) private {
+    require(_msgSender() != address(0), "BuyItem: INVALID_ADDRESS");
+    require(detail.isForSale, "BuyItem: NOT_SELLING");
+    require(detail.owner != _msgSender(), "BuyItem: IMPOSSIBLE_FOR_OWNER");
+    require(msg.value >= detail.price, "BuyItem: LOWER_PRICE");
   }
 
   function sellItem(address tokenAddress, uint256 tokenId, uint256 price) external {
@@ -127,7 +141,7 @@ contract GameFactory is Ownable {
 
     TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
     if (!detail.isExist) {
-      nftsForSale[tokenAddress][tokenId] = TokenDetails(true, true, payable(_msgSender()), price);
+      nftsForSale[tokenAddress][tokenId] = TokenDetails(true, true, payable(_msgSender()), 1, price);
     } else {
       require(!detail.isForSale, "SellItem: CURRENT_SELLING");
       require(detail.owner == _msgSender(), "SellItem: ONLY_FOR_OWNER");
@@ -136,7 +150,25 @@ contract GameFactory is Ownable {
       detail.price = price;
     }
 
-    emit PriceItemAdded(tokenAddress, tokenId, price);
+    emit PriceItemAdded(tokenAddress, tokenId, price, 1);
+  }
+
+  function sellItemWithAmount(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount) external {
+    require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
+
+    TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
+    if (!detail.isExist) {
+      nftsForSale[tokenAddress][tokenId] = TokenDetails(true, true, payable(_msgSender()), amount, price);
+    } else {
+      require(!detail.isForSale, "SellItem: CURRENT_SELLING");
+      require(detail.owner == _msgSender(), "SellItem: ONLY_FOR_OWNER");
+
+      detail.isForSale = true;
+      detail.amount = amount;
+      detail.price = price;
+    }
+
+    emit PriceItemAdded(tokenAddress, tokenId, price, amount);
   }
 
   function sellItemCancel(address tokenAddress, uint256 tokenId) external {
@@ -148,7 +180,7 @@ contract GameFactory is Ownable {
 
     delete nftsForSale[tokenAddress][tokenId];
     
-    emit PriceItemRemoved(tokenAddress, tokenId, detail.price);
+    emit PriceItemRemoved(tokenAddress, tokenId, detail.price, detail.amount);
   }
 
   function setClaimFee(uint256 _claimFee) external onlyOwner {
