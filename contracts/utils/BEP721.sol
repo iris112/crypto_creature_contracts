@@ -53,7 +53,7 @@ contract BEP721 is Context, BEP165, IBEP721, IBEP721Metadata {
     /**
      * @dev See {IBEP721-balanceOf}.
      */
-    function balanceOf(address owner) external view virtual override returns (uint256) {
+    function balanceOf(address owner) public view virtual override returns (uint256) {
         require(owner != address(0), "BEP721: balance query for the zero address");
         return _balances[owner];
     }

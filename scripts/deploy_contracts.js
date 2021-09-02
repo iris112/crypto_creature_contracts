@@ -5,6 +5,15 @@
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 
+async function deployContract(contract) {
+  const factory = await hre.ethers.getContractFactory(contract);
+  let token = await factory.deploy();
+
+  await token.deployed();
+
+  console.log(`${contract} deployed to:`, token.address);
+}
+
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
@@ -14,12 +23,15 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const CarToken = await hre.ethers.getContractFactory("CarToken");
-  const token = await CarToken.deploy("CarNFT", "CNFT");
-
-  await token.deployed();
-
-  console.log("CarToken deployed to:", token.address);
+  await deployContract("CreatureNFT");
+  await deployContract("CreatureNFTitems");
+  await deployContract("DiamondToken");
+  await deployContract("GameFactory");
+  await deployContract("GameToken");
+  await deployContract("MapNFT");
+  await deployContract("MapNFTitems");
+  await deployContract("TowerNFT");
+  await deployContract("TowerNFTitems");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

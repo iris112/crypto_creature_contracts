@@ -3,12 +3,13 @@
 pragma solidity 0.8.0;
 
 import "./utils/BEP721.sol";
+import "./utils/BEP721Enumerable.sol";
 import "./utils/Ownable.sol";
 import "./library/Strings.sol";
 import "./library/Address.sol";
 import "./library/Counter.sol";
 
-contract MapNFT is BEP721, Ownable {
+contract MapNFT is BEP721Enumerable, Ownable {
   using Counters for Counters.Counter;
   using Strings for string;
   using Address for address;
