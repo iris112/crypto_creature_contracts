@@ -4,22 +4,13 @@ pragma solidity 0.8.0;
 
 import "./utils/BEP721.sol";
 import "./utils/BEP721Enumerable.sol";
-import "./utils/Ownable.sol";
+import "./utils/BEP721ForSale.sol";
 import "./library/Counter.sol";
 
-contract TowerNFT is BEP721Enumerable, Ownable {
+contract TowerNFT is BEP721ForSale, BEP721Enumerable {
   using Counters for Counters.Counter;
 
   Counters.Counter internal tokenIdCounter;
-  address public GameFactory;
-  
-  modifier onlyGameFactory {
-    require(
-      GameFactory == msg.sender,
-      "The caller of this function must be a GameFactory"
-    );
-    _;
-  }
 
   constructor() BEP721("TowerNFT", "TNFT")  {  
     _setBaseURI("https://cryptocreatures.org/api/TowerNFT/");
@@ -33,10 +24,6 @@ contract TowerNFT is BEP721Enumerable, Ownable {
     require(minter != address(0), "CreatureNFT: MINTER_IS_ZERO_ADDRESS");
     
     return _mintItem(minter);
-  }
-    
-  function setGameFactory(address _GameFactory) external onlyOwner {
-    GameFactory = _GameFactory;
   }
 
   function _mintItem(address minter) private returns(uint256) {

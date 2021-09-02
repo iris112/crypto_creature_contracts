@@ -11,6 +11,7 @@ import "./interfaces/CCNFT.sol";
 import "./interfaces/IBEP20.sol";
 import "./interfaces/IBEP721.sol";
 import "./utils/BEP1155Tradable.sol";
+import "./interfaces/IGameFactory.sol";
 
 contract GameFactory is Ownable {
   using Strings for string;
@@ -29,7 +30,7 @@ contract GameFactory is Ownable {
 
   //Mapping by marketplace listing by Id to token details.
   // token address => token id => token details
-  mapping(address => mapping(uint256 => TokenDetails)) public nftsForSale;
+  mapping(address => mapping(uint256 => IGameFactory.TokenDetails)) public nftsForSale;
   
   struct NFTAttribute {
     bool inWar;
@@ -39,14 +40,6 @@ contract GameFactory is Ownable {
     uint256 stakedJedi;
     uint256 stakedDarth;
     uint256 stakedPower;
-  }
-
-  struct TokenDetails {
-    bool isForSale;
-    bool isExist;
-    address payable owner;
-    uint256 amount;
-    uint256 price;
   }
 
   event PriceItemAdded(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
@@ -108,7 +101,7 @@ contract GameFactory is Ownable {
   }
 
   function buyItem(address tokenAddress, uint256 tokenId) external payable {
-    TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
+    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
 
     _checkBuyPossible(detail);
     detail.owner.transfer(msg.value);
@@ -119,7 +112,7 @@ contract GameFactory is Ownable {
   }
 
   function buyItemWithAmount(address tokenAddress, uint256 tokenId, uint256 amount) external payable {
-    TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
+    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
 
     _checkBuyPossible(detail);
     detail.owner.transfer(msg.value);
@@ -129,7 +122,7 @@ contract GameFactory is Ownable {
     emit PriceItemSold(tokenAddress, tokenId, msg.value, amount);
   }
 
-  function _checkBuyPossible(TokenDetails memory detail) private {
+  function _checkBuyPossible(IGameFactory.TokenDetails memory detail) private {
     require(_msgSender() != address(0), "BuyItem: INVALID_ADDRESS");
     require(detail.isForSale, "BuyItem: NOT_SELLING");
     require(detail.owner != _msgSender(), "BuyItem: IMPOSSIBLE_FOR_OWNER");
@@ -139,9 +132,9 @@ contract GameFactory is Ownable {
   function sellItem(address tokenAddress, uint256 tokenId, uint256 price) external {
     require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
 
-    TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
+    IGameFactory.TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
     if (!detail.isExist) {
-      nftsForSale[tokenAddress][tokenId] = TokenDetails(true, true, payable(_msgSender()), 1, price);
+      nftsForSale[tokenAddress][tokenId] = IGameFactory.TokenDetails(true, true, payable(_msgSender()), tokenId, 1, price);
     } else {
       require(!detail.isForSale, "SellItem: CURRENT_SELLING");
       require(detail.owner == _msgSender(), "SellItem: ONLY_FOR_OWNER");
@@ -156,9 +149,9 @@ contract GameFactory is Ownable {
   function sellItemWithAmount(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount) external {
     require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
 
-    TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
+    IGameFactory.TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
     if (!detail.isExist) {
-      nftsForSale[tokenAddress][tokenId] = TokenDetails(true, true, payable(_msgSender()), amount, price);
+      nftsForSale[tokenAddress][tokenId] = IGameFactory.TokenDetails(true, true, payable(_msgSender()), tokenId, amount, price);
     } else {
       require(!detail.isForSale, "SellItem: CURRENT_SELLING");
       require(detail.owner == _msgSender(), "SellItem: ONLY_FOR_OWNER");
@@ -172,7 +165,7 @@ contract GameFactory is Ownable {
   }
 
   function sellItemCancel(address tokenAddress, uint256 tokenId) external {
-    TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
+    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
 
     require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
     require(detail.isForSale, "sellItemCancel: NOT_SELLING");

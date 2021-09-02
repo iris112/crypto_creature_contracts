@@ -12,6 +12,7 @@ async function deployContract(contract) {
   await token.deployed();
 
   console.log(`${contract} deployed to:`, token.address);
+  return token;
 }
 
 async function main() {
@@ -23,15 +24,23 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  await deployContract("CreatureNFT");
+  const creature = await deployContract("CreatureNFT");
   await deployContract("CreatureNFTitems");
   await deployContract("DiamondToken");
-  await deployContract("GameFactory");
+  const factory = await deployContract("GameFactory");
   await deployContract("GameToken");
   await deployContract("MapNFT");
   await deployContract("MapNFTitems");
   await deployContract("TowerNFT");
   await deployContract("TowerNFTitems");
+
+  //Mint
+  for (let i = 0; i < 20; i++)
+    await creature.mint();
+
+  //make Sale
+  for (let i = 0; i < 10; i++)
+    await factory.sellItem(creature.address, i + 1, 0.001 * i);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

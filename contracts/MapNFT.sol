@@ -4,19 +4,18 @@ pragma solidity 0.8.0;
 
 import "./utils/BEP721.sol";
 import "./utils/BEP721Enumerable.sol";
-import "./utils/Ownable.sol";
+import "./utils/BEP721ForSale.sol";
 import "./library/Strings.sol";
 import "./library/Address.sol";
 import "./library/Counter.sol";
 
-contract MapNFT is BEP721Enumerable, Ownable {
+contract MapNFT is BEP721ForSale, BEP721Enumerable {
   using Counters for Counters.Counter;
   using Strings for string;
   using Address for address;
 
 
   Counters.Counter internal tokenIdCounter;
-  address public GameFactory;
   
   struct MapInfo {
     uint8 x;
@@ -26,14 +25,6 @@ contract MapNFT is BEP721Enumerable, Ownable {
   
   mapping(uint256 => MapInfo) public mapSize;
   mapping(uint256 => mapping(uint8 => mapping(uint8 => uint256))) public mapObjects;
-
-  modifier onlyGameFactory {
-    require(
-      GameFactory == msg.sender,
-      "The caller of this function must be a GameFactory"
-    );
-    _;
-  }
 
   constructor() BEP721("MapNFT", "MNFT")  {  
     _setBaseURI("https://cryptocreatures.org/api/MapNFT/");
@@ -57,10 +48,6 @@ contract MapNFT is BEP721Enumerable, Ownable {
     require(minter != address(0), "CreatureNFT: MINTER_IS_ZERO_ADDRESS");
 
     return _mintItem(minter, mapX, mapY, ground);
-  }
-    
-  function setGameFactory(address _GameFactory) external onlyOwner {
-      GameFactory = _GameFactory;
   }
 
   function _mintItem(address minter, uint8 mapX, uint8 mapY, uint16 ground) private returns(uint256) {
