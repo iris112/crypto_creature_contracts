@@ -55,6 +55,6 @@ contract BEP721ForSale is Ownable {
       ret[i - start] = IGameFactory(gameFactory).nftsForSale(address(this), data[i]);
     }
 
-    return (ret, end - start);
+    return (ret, end - start, data.length);
   }  
 }
