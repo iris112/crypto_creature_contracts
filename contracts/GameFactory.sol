@@ -12,6 +12,7 @@ import "./interfaces/IBEP20.sol";
 import "./interfaces/IBEP721.sol";
 import "./utils/BEP1155Tradable.sol";
 import "./interfaces/IGameFactory.sol";
+import "./interfaces/IBEP721ForSale.sol";
 
 contract GameFactory is Ownable {
   using Strings for string;
@@ -142,6 +143,7 @@ contract GameFactory is Ownable {
       detail.isForSale = true;
       detail.price = price;
     }
+    IBEP721ForSale(tokenAddress).setForSale(tokenId);
 
     emit PriceItemAdded(tokenAddress, tokenId, price, 1);
   }
@@ -172,6 +174,7 @@ contract GameFactory is Ownable {
     require(detail.owner == _msgSender(), "sellItemCancel: ONLY_FOR_OWNER");
 
     delete nftsForSale[tokenAddress][tokenId];
+    IBEP721ForSale(tokenAddress).removeFromSale(tokenId);
     
     emit PriceItemRemoved(tokenAddress, tokenId, detail.price, detail.amount);
   }
