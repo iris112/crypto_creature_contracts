@@ -40,7 +40,7 @@ async function main() {
 
   //make Sale
   for (let i = 0; i < 10; i++)
-    await factory.sellItem(creature.address, i + 1, 0.001 * i);
+    await factory.sellItem(creature.address, i + 1, hre.ethers.utils.parseEther('0.001') * i);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
