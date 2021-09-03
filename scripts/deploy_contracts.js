@@ -42,8 +42,9 @@ async function main() {
     await creature.mint();
 
   //make Sale
-  for (let i = 0; i < 10; i++)
-    await factory.sellItem(creature.address, i + 1, hre.ethers.utils.parseEther('0.001') * i);
+  for (let i = 0; i < 10; i++) {
+    await factory.sellItem(creature.address, i + 1, hre.ethers.utils.parseEther((0.001 * (i + 1)).toString()));
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
