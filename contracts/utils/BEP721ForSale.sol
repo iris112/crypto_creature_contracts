@@ -44,17 +44,17 @@ contract BEP721ForSale is Ownable {
 
   function getAllOnSale(uint8 page, uint8 perPage) external view returns (IGameFactory.TokenDetails[] memory, uint256, uint256) {
     IGameFactory.TokenDetails[] memory ret = new IGameFactory.TokenDetails[](perPage);
-    uint256[] memory data = idsForSale;
+    uint256 length = idsForSale.length;
     uint256 start = perPage * (page - 1);
     uint256 end = perPage * page;
 
-    if (end > data.length)
-      end = data.length;
+    if (end > length)
+      end = length;
 
     for (uint256 i = start; i < end; i++) {
-      ret[i - start] = IGameFactory(gameFactory).nftsForSale(address(this), data[i]);
+      ret[i - start] = IGameFactory(gameFactory).nftsForSale(address(this), idsForSale[i]);
     }
 
-    return (ret, end - start, data.length);
+    return (ret, end - start, length);
   }  
 }
