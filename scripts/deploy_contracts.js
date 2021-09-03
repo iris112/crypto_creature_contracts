@@ -34,6 +34,9 @@ async function main() {
   await deployContract("TowerNFT");
   await deployContract("TowerNFTitems");
 
+  //Set GameFactory
+  await creature.setGameFactory(factory.address);
+
   //Mint
   for (let i = 0; i < 20; i++)
     await creature.mint();
