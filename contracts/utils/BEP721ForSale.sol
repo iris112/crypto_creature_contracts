@@ -42,7 +42,7 @@ contract BEP721ForSale is Ownable {
     idsForSale.pop();
   }
 
-  function getAllOnSale(uint8 page, uint8 perPage) external view returns (IGameFactory.TokenDetails[] memory, uint256) {
+  function getAllOnSale(uint8 page, uint8 perPage) external view returns (IGameFactory.TokenDetails[] memory, uint256, uint256) {
     IGameFactory.TokenDetails[] memory ret = new IGameFactory.TokenDetails[](perPage);
     uint256[] memory data = idsForSale;
     uint256 start = perPage * (page - 1);
