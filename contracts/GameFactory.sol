@@ -108,6 +108,7 @@ contract GameFactory is Ownable {
     detail.owner.transfer(msg.value);
     IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), tokenId);
     delete nftsForSale[tokenAddress][tokenId];
+    IBEP721ForSale(tokenAddress).removeFromSale(tokenId);
     
     emit PriceItemSold(tokenAddress, tokenId, msg.value, 1);
   }
@@ -119,6 +120,7 @@ contract GameFactory is Ownable {
     detail.owner.transfer(msg.value);
     BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), tokenId, amount, "");
     delete nftsForSale[tokenAddress][tokenId];
+    IBEP721ForSale(tokenAddress).removeFromSale(tokenId);
     
     emit PriceItemSold(tokenAddress, tokenId, msg.value, amount);
   }

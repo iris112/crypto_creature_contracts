@@ -15,6 +15,14 @@ async function deployContract(contract) {
   return token;
 }
 
+async function getContractAt(contract, address) {
+  const factory = await hre.ethers.getContractFactory(contract);
+  const token = await factory.attach(address);
+
+  console.log(`${contract} attached to:`, token.address);
+  return token;
+}
+
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
@@ -51,6 +59,18 @@ async function main() {
   }
   for (let i = 0; i < 25; i++) {
     await factory.sellItem(tower.address, i + 1, hre.ethers.utils.parseEther((0.001 * (i + 1)).toString()));
+  }
+
+
+  // const creature = await getContractAt("CreatureNFT", "0x33228e503C174D7ce02b94D79bc6B75F9484cA2d");
+  // const factory = await getContractAt("GameFactory", "0x6Fe5b87F1DE58Da1eCDC63F6DdB6Faead9e941B0");
+  // const tower = await getContractAt("TowerNFT", "0x0A791867cEAA9d47e3424b8816dcDF4e3cA3A364");
+  //make approve
+  for (let i = 0; i < 15; i++) {
+    await creature.approve(factory.address, i + 1);
+  }
+  for (let i = 0; i < 25; i++) {
+    await tower.approve(factory.address, i + 1);
   }
 }
 
