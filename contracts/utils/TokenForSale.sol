@@ -5,10 +5,10 @@ pragma solidity 0.8.0;
 import "../interfaces/IGameFactory.sol";
 import "./Ownable.sol";
 
-contract BEP721ForSale is Ownable {
+contract TokenForSale is Ownable {
 
   uint256[] public idsForSale;
-  // token Id => index + 1 of idsForSale
+  // sale Id => index + 1 of idsForSale
   mapping (uint256 => uint256) saleIndexForToken;
   
   address public gameFactory;
@@ -27,18 +27,17 @@ contract BEP721ForSale is Ownable {
     gameFactory = _gameFactory;
   }
 
-  function setForSale(uint256 tokenId) external {
-    idsForSale.push(tokenId);
-    saleIndexForToken[tokenId] = idsForSale.length;
+  function setForSale(uint256 saleId) external onlyGameFactory {
+    idsForSale.push(saleId);
+    saleIndexForToken[saleId] = idsForSale.length;
   }
 
-  function removeFromSale(uint256 tokenId) external {
-    uint256 index = saleIndexForToken[tokenId] - 1;
+  function removeFromSale(uint256 saleId) external onlyGameFactory {
+    uint256 index = saleIndexForToken[saleId] - 1;
     uint256 length = idsForSale.length;
 
-    require(index > 0, "BEP721ForSale: NOT_EXIST_TOKEN_SALE");
+    require(index > 0, "TokenForSale: NOT_EXIST_TOKEN_SALE");
     idsForSale[index] = idsForSale[length - 1];
-    delete saleIndexForToken[tokenId];
     idsForSale.pop();
   }
 
@@ -56,5 +55,5 @@ contract BEP721ForSale is Ownable {
     }
 
     return (ret, end - start, length);
-  }  
+  }
 }

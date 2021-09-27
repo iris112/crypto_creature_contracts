@@ -98,6 +98,148 @@ contract BEP1155Tradable is IBEP165, Ownable {
     _callonBEP1155BatchReceived(_from, _to, _ids, _amounts, _data);
   }
 
+  function setApprovalForAll(address _operator, bool _approved)
+    external
+  {
+    operators[msg.sender][_operator] = _approved;
+    emit ApprovalForAll(msg.sender, _operator, _approved);
+  }
+
+  function balanceOf(address _owner, uint256 _id)
+    external view returns (uint256)
+  {
+    return balances[_owner][_id];
+  }
+
+  function balanceOfBatch(address[] memory _owners, uint256[] memory _ids)
+    external view returns (uint256[] memory)
+  {
+    require(_owners.length == _ids.length, "BEP1155#balanceOfBatch: INVALID_ARRAY_LENGTH");
+
+    uint256[] memory batchBalances = new uint256[](_owners.length);
+
+    for (uint256 i = 0; i < _owners.length; i++) {
+      batchBalances[i] = balances[_owners[i]][_ids[i]];
+    }
+
+    return batchBalances;
+  }
+
+  function supportsInterface(bytes4 _interfaceID) override external pure returns (bool) {
+    if (_interfaceID == INTERFACE_SIGNATURE_BEP165 ||
+        _interfaceID == INTERFACE_SIGNATURE_BEP1155) {
+      return true;
+    }
+    return false;
+  }
+
+  function uri(uint256 _id) external view returns (string memory) {
+    require(_exists(_id), "BEP1155Tradable#uri: NONEXISTENT_TOKEN");
+    return Strings.strConcat(baseMetadataURI, Strings.uint2str(_id));
+  }
+
+  function tokenURI(uint256 tokenId) external view returns (string memory) {
+    require(_exists(tokenId), "BEP1155Tradable#uri: NONEXISTENT_TOKEN");
+    return Strings.strConcat(baseMetadataURI, Strings.uint2str(tokenId));
+  }
+  
+  function contractURI() external view returns (string memory) {
+    return Strings.strConcat(baseMetadataURI, "contractURI");
+  }
+
+  function totalSupply(uint256 _id) external view returns (uint256) {
+    return tokenSupply[_id];
+  }
+
+  function maxSupply(uint256 _id) external view returns (uint256) {
+    return tokenMaxSupply[_id];
+  }
+  
+  function price(uint256 _id) external view returns (uint256) {
+    return tokenPrice[_id];
+  }
+
+  function setBaseMetadataURI(string memory _newBaseMetadataURI) external onlyOwner {
+    _setBaseMetadataURI(_newBaseMetadataURI);
+  }
+  
+  function powerOf(address account) public view returns (uint256) {
+      return powers[account];
+  }
+
+  function create(
+    uint256 _maxSupply,
+    uint256 _price,
+    uint256 pd, // Power Damage
+    uint256 pk, // Power Kinetics
+    uint256 ps, // Power Speed 
+    uint256 pc, // Power Conversion
+    uint256 ph // Power Healing
+    
+  ) external onlyOwner returns (uint256 tokenId) {
+    uint256 _id = _getNextTokenID();
+    _incrementTokenTypeId();
+    creators[_id] = msg.sender;
+    tokenPrice[_id] = _price;
+    tokenMaxSupply[_id] = _maxSupply;
+    settings[_id].pd = pd;
+    settings[_id].pk = pk;
+    settings[_id].ps = ps;
+    settings[_id].pc = pc;
+    settings[_id].ph = ph;
+    settings[_id].pave = (pd+pk+ps+pc+ph).div(5);
+    return _id;
+  }
+
+  
+  function isApprovedForAll(address _owner, address _operator) public view returns (bool isOperator) {
+    // Whitelist OpenSea proxy contract for easy trading.
+    ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
+    if (address(proxyRegistry.proxies(_owner)) == _operator) {
+      return true;
+    }
+
+    return operators[_owner][_operator];
+  }
+
+  function addLendingPool(address pool) external onlyOwner {
+    isPool[pool] = true;
+  }
+  
+  function delLendingPool(address pool) external onlyOwner {
+    delete(isPool[pool]);
+  }
+  
+  function isExist(uint256 _id) external view returns (bool) {
+    return creators[_id] != address(0);
+  }
+
+  function mintTo(address _to, uint256 _tokenId, uint256 _amount) external onlyLendingPool  returns (uint256 _tokenPrice) {
+    uint256 tokenId = _tokenId;
+    uint256 updatedTokenSupply = tokenSupply[tokenId].add(_amount);
+    require(updatedTokenSupply <= tokenMaxSupply[tokenId], "Max supply reached");
+    _mint(_to, _tokenId, _amount, "");
+    tokenSupply[tokenId] = updatedTokenSupply;
+    return tokenPrice[tokenId];
+  }
+  
+  function mint(uint256 _tokenId, uint256 _amount) external onlyOwner  returns (uint256 _tokenPrice) {
+    uint256 tokenId = _tokenId;
+    uint256 updatedTokenSupply = tokenSupply[tokenId].add(_amount);
+    require(updatedTokenSupply <= tokenMaxSupply[tokenId], "Max supply reached");
+    _mint(msg.sender, _tokenId, _amount, "");
+    tokenSupply[tokenId] = updatedTokenSupply;
+    return tokenPrice[tokenId];
+  }
+  
+  function burn(address _from, uint256 _id, uint256 _amount) external {
+    _burn(_from, _id, _amount);
+  }
+
+  function totalExist() external view returns (uint256) {
+    return _currentTokenID;
+  }
+
   function _safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount)
     internal
   {
@@ -142,41 +284,6 @@ contract BEP1155Tradable is IBEP165, Ownable {
       bytes4 retval = IBEP1155TokenReceiver(_to).onBEP1155BatchReceived(msg.sender, _from, _ids, _amounts, _data);
       require(retval == BEP1155_BATCH_RECEIVED_VALUE, "BEP1155#_callonBEP1155BatchReceived: INVALID_ON_RECEIVE_MESSAGE");
     }
-  }
-
-  function setApprovalForAll(address _operator, bool _approved)
-    external
-  {
-    operators[msg.sender][_operator] = _approved;
-    emit ApprovalForAll(msg.sender, _operator, _approved);
-  }
-
-  function balanceOf(address _owner, uint256 _id)
-    external view returns (uint256)
-  {
-    return balances[_owner][_id];
-  }
-
-  function balanceOfBatch(address[] memory _owners, uint256[] memory _ids)
-    external view returns (uint256[] memory)
-  {
-    require(_owners.length == _ids.length, "BEP1155#balanceOfBatch: INVALID_ARRAY_LENGTH");
-
-    uint256[] memory batchBalances = new uint256[](_owners.length);
-
-    for (uint256 i = 0; i < _owners.length; i++) {
-      batchBalances[i] = balances[_owners[i]][_ids[i]];
-    }
-
-    return batchBalances;
-  }
-
-  function supportsInterface(bytes4 _interfaceID) override external pure returns (bool) {
-    if (_interfaceID == INTERFACE_SIGNATURE_BEP165 ||
-        _interfaceID == INTERFACE_SIGNATURE_BEP1155) {
-      return true;
-    }
-    return false;
   }
 
   function _logURIs(uint256[] memory _tokenIDs) internal {
@@ -251,75 +358,6 @@ contract BEP1155Tradable is IBEP165, Ownable {
     emit TransferBatch(msg.sender, _from, address(0x0), _ids, _amounts);
   }
 
-  function uri(uint256 _id) external view returns (string memory) {
-    require(_exists(_id), "BEP1155Tradable#uri: NONEXISTENT_TOKEN");
-    return Strings.strConcat(baseMetadataURI, Strings.uint2str(_id));
-  }
-
-  function tokenURI(uint256 tokenId) external view returns (string memory) {
-    require(_exists(tokenId), "BEP1155Tradable#uri: NONEXISTENT_TOKEN");
-    return Strings.strConcat(baseMetadataURI, Strings.uint2str(tokenId));
-  }
-  
-  function contractURI() external view returns (string memory) {
-    return Strings.strConcat(baseMetadataURI, "contractURI");
-  }
-
-  function totalSupply(uint256 _id) external view returns (uint256) {
-    return tokenSupply[_id];
-  }
-
-  function maxSupply(uint256 _id) external view returns (uint256) {
-    return tokenMaxSupply[_id];
-  }
-  
-  function price(uint256 _id) external view returns (uint256) {
-    return tokenPrice[_id];
-  }
-
-  function setBaseMetadataURI(string memory _newBaseMetadataURI) external onlyOwner {
-    _setBaseMetadataURI(_newBaseMetadataURI);
-  }
-  
-  function powerOf(address account) public view returns (uint256) {
-      return powers[account];
-  }
-
-  function create(
-    uint256 _maxSupply,
-    uint256 _price,
-    uint256 pd, // Power Damage
-    uint256 pk, // Power Kinetics
-    uint256 ps, // Power Speed 
-    uint256 pc, // Power Conversion
-    uint256 ph // Power Healing
-    
-  ) external onlyOwner returns (uint256 tokenId) {
-    uint256 _id = _getNextTokenID();
-    _incrementTokenTypeId();
-    creators[_id] = msg.sender;
-    tokenPrice[_id] = _price;
-    tokenMaxSupply[_id] = _maxSupply;
-    settings[_id].pd = pd;
-    settings[_id].pk = pk;
-    settings[_id].ps = ps;
-    settings[_id].pc = pc;
-    settings[_id].ph = ph;
-    settings[_id].pave = (pd+pk+ps+pc+ph).div(5);
-    return _id;
-  }
-
-  
-  function isApprovedForAll(address _owner, address _operator) public view returns (bool isOperator) {
-    // Whitelist OpenSea proxy contract for easy trading.
-    ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
-    if (address(proxyRegistry.proxies(_owner)) == _operator) {
-      return true;
-    }
-
-    return operators[_owner][_operator];
-  }
-
   function _exists(uint256 _id) internal view returns (bool) {
     return creators[_id] != address(0);
   }
@@ -330,47 +368,5 @@ contract BEP1155Tradable is IBEP165, Ownable {
 
   function _incrementTokenTypeId() private {
     _currentTokenID++;
-  }
-  
-  function addLendingPool(address pool) external onlyOwner {
-    isPool[pool] = true;
-  }
-  
-  function delLendingPool(address pool) external onlyOwner {
-    delete(isPool[pool]);
-  }
-  
-  function isExist(uint256 _id) external view returns (bool) {
-    return creators[_id] != address(0);
-  }
-
-  function mintTo(address _to, uint256 _tokenId) external onlyLendingPool  returns (uint256 _tokenPrice) {
-    uint256 tokenId = _tokenId;
-    require(tokenSupply[tokenId] < tokenMaxSupply[tokenId], "Max supply reached");
-    balances[_to][tokenId] = balances[_to][tokenId].add(1);
-    powers[_to] = (powers[_to].add(settings[tokenId].pave)).div(2);
-    emit TransferSingle(msg.sender, address(0x0), _to, tokenId, 1);
-    tokenSupply[tokenId] = tokenSupply[tokenId].add(1);
-    return tokenPrice[tokenId];
-  }
-  
-  function mint(uint256 _tokenId) external onlyOwner  returns (uint256 _tokenPrice) {
-    uint256 tokenId = _tokenId;
-    require(tokenSupply[tokenId] < tokenMaxSupply[tokenId], "Max supply reached");
-    balances[msg.sender][tokenId] = balances[msg.sender][tokenId].add(1);
-    powers[msg.sender] = (powers[msg.sender].add(settings[tokenId].pave)).div(2);
-    emit TransferSingle(msg.sender, address(0x0), msg.sender, tokenId, 1);
-    tokenSupply[tokenId] = tokenSupply[tokenId].add(1);
-    return tokenPrice[tokenId];
-  }
-  
-  function burn(address _from, uint256 _id, uint256 _amount) external {
-    balances[_from][_id] = balances[_from][_id].sub(_amount);
-    powers[_from] = powers[_from].mul(_amount.add(1)).sub(settings[_id].pave.mul(_amount));
-    emit TransferSingle(msg.sender, _from, address(0x0), _id, _amount);
-  }
-
-  function totalExist() external view returns (uint256) {
-    return _currentTokenID;
   }
 }

@@ -4,10 +4,10 @@ pragma solidity 0.8.0;
 
 import "./utils/BEP721.sol";
 import "./utils/BEP721Enumerable.sol";
-import "./utils/BEP721ForSale.sol";
+import "./utils/TokenForSale.sol";
 import "./library/Counter.sol";
 
-contract TowerNFT is BEP721ForSale, BEP721Enumerable {
+contract TowerNFT is TokenForSale, BEP721Enumerable {
   using Counters for Counters.Counter;
 
   Counters.Counter internal tokenIdCounter;

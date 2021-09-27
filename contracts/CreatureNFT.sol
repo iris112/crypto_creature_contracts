@@ -3,11 +3,11 @@
 pragma solidity 0.8.0;
 
 import "./utils/BEP721Enumerable.sol";
-import "./utils/BEP721ForSale.sol";
+import "./utils/TokenForBreeding.sol";
 import "./utils/BEP721.sol";
 import "./library/Counter.sol";
 
-contract CreatureNFT is BEP721ForSale, BEP721Enumerable {
+contract CreatureNFT is TokenForBreeding, BEP721Enumerable {
   using Counters for Counters.Counter;
 
   Counters.Counter internal tokenIdCounter;

@@ -12,12 +12,14 @@ import "./interfaces/IBEP20.sol";
 import "./interfaces/IBEP721.sol";
 import "./utils/BEP1155Tradable.sol";
 import "./interfaces/IGameFactory.sol";
-import "./interfaces/IBEP721ForSale.sol";
+import "./interfaces/ITokenForSale.sol";
+import "./library/Counter.sol";
 
 contract GameFactory is Ownable {
   using Strings for string;
   using SafeMath for uint256;
   using Address for address;
+  using Counters for Counters.Counter;
   
   address public gameToken;
   address public diamondToken;
@@ -28,9 +30,10 @@ contract GameFactory is Ownable {
   address public creaturesToken;
   address public creatureItemsToken;
   uint256 public claimFee = 1e16;
+  Counters.Counter internal saleIdCounter;
 
   //Mapping by marketplace listing by Id to token details.
-  // token address => token id => token details
+  // token address => sale id => token details
   mapping(address => mapping(uint256 => IGameFactory.TokenDetails)) public nftsForSale;
   
   struct NFTAttribute {
@@ -43,9 +46,12 @@ contract GameFactory is Ownable {
     uint256 stakedPower;
   }
 
-  event PriceItemAdded(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
-  event PriceItemRemoved(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
-  event PriceItemSold(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount);
+  event PriceItemAdded(address tokenAddress, uint256 saleId, uint256 tokenId, uint256 price, uint256 amount);
+  event PriceItemRemoved(address tokenAddress, uint256 saleId, uint256 tokenId, uint256 price, uint256 amount);
+  event PriceItemSold(address tokenAddress, uint256 saleId, uint256 tokenId, uint256 price, uint256 amount);
+  event BreedingItemAdded(address tokenAddress, uint256 saleId, uint256 breedingTokenId, uint256 price, uint256 amount);
+  event BreedingItemRemoved(address tokenAddress, uint256 saleId, uint256 breedingTokenId, uint256 price, uint256 amount);
+  event BreedingItemSold(address tokenAddress, uint256 saleId, uint256 breedingTokenId, uint256 tokenId, uint256 price, uint256 amount);
 
   mapping (address => NFTAttribute) internal _settings;
 
@@ -101,96 +107,63 @@ contract GameFactory is Ownable {
     return result;
   }
 
-  function buyItem(address tokenAddress, uint256 tokenId) external payable {
-    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
+  function buyItem(address tokenAddress, uint256 saleId) external payable {
+    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][saleId];
 
     _checkBuyPossible(detail);
+    nftsForSale[tokenAddress][saleId].isForSale = false;
     detail.owner.transfer(msg.value);
-    IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), tokenId);
-    delete nftsForSale[tokenAddress][tokenId];
-    IBEP721ForSale(tokenAddress).removeFromSale(tokenId);
+    if (detail.amount > 1)
+      BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), detail.tokenId, detail.amount, "");
+    else
+      IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), detail.tokenId);
+    ITokenForSale(tokenAddress).removeFromSale(saleId);
     
-    emit PriceItemSold(tokenAddress, tokenId, msg.value, 1);
-  }
-
-  function buyItemWithAmount(address tokenAddress, uint256 tokenId, uint256 amount) external payable {
-    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
-
-    _checkBuyPossible(detail);
-    detail.owner.transfer(msg.value);
-    BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), tokenId, amount, "");
-    delete nftsForSale[tokenAddress][tokenId];
-    IBEP721ForSale(tokenAddress).removeFromSale(tokenId);
-    
-    emit PriceItemSold(tokenAddress, tokenId, msg.value, amount);
+    emit PriceItemSold(tokenAddress, saleId, detail.tokenId, msg.value, detail.amount);
   }
 
   function _checkBuyPossible(IGameFactory.TokenDetails memory detail) private {
     require(_msgSender() != address(0), "BuyItem: INVALID_ADDRESS");
     require(detail.isForSale, "BuyItem: NOT_SELLING");
     require(detail.owner != _msgSender(), "BuyItem: IMPOSSIBLE_FOR_OWNER");
-    require(msg.value >= detail.price, "BuyItem: LOWER_PRICE");
+    require(msg.value >= detail.price * detail.amount, "BuyItem: LOWER_PRICE");
   }
 
-  function sellItem(address tokenAddress, uint256 tokenId, uint256 price) external {
+  function sellItem(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount) external {
     require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
 
-    IGameFactory.TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
-    if (!detail.isExist) {
-      nftsForSale[tokenAddress][tokenId] = IGameFactory.TokenDetails(true, true, payable(_msgSender()), tokenId, 1, price);
-    } else {
-      require(!detail.isForSale, "SellItem: CURRENT_SELLING");
-      require(detail.owner == _msgSender(), "SellItem: ONLY_FOR_OWNER");
+    saleIdCounter.increment();
+    uint256 newSaleId = saleIdCounter.current();
+    nftsForSale[tokenAddress][newSaleId] = IGameFactory.TokenDetails(true, false, payable(_msgSender()), tokenId, amount, price);
+    
+    ITokenForSale(tokenAddress).setForSale(newSaleId);
 
-      detail.isForSale = true;
-      detail.price = price;
-    }
-    IBEP721ForSale(tokenAddress).setForSale(tokenId);
-
-    emit PriceItemAdded(tokenAddress, tokenId, price, 1);
+    emit PriceItemAdded(tokenAddress, newSaleId, tokenId, price, amount);
   }
 
-  function sellItemWithAmount(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount) external {
-    require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
-
-    IGameFactory.TokenDetails storage detail = nftsForSale[tokenAddress][tokenId];
-    if (!detail.isExist) {
-      nftsForSale[tokenAddress][tokenId] = IGameFactory.TokenDetails(true, true, payable(_msgSender()), tokenId, amount, price);
-    } else {
-      require(!detail.isForSale, "SellItem: CURRENT_SELLING");
-      require(detail.owner == _msgSender(), "SellItem: ONLY_FOR_OWNER");
-
-      detail.isForSale = true;
-      detail.amount = amount;
-      detail.price = price;
-    }
-
-    emit PriceItemAdded(tokenAddress, tokenId, price, amount);
-  }
-
-  function sellItemCancel(address tokenAddress, uint256 tokenId) external {
-    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][tokenId];
+  function sellItemCancel(address tokenAddress, uint256 saleId) external {
+    IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][saleId];
 
     require(_msgSender() != address(0), "sellItemCancel: INVALID_ADDRESS");
     require(detail.isForSale, "sellItemCancel: NOT_SELLING");
     require(detail.owner == _msgSender(), "sellItemCancel: ONLY_FOR_OWNER");
-
-    delete nftsForSale[tokenAddress][tokenId];
-    IBEP721ForSale(tokenAddress).removeFromSale(tokenId);
     
-    emit PriceItemRemoved(tokenAddress, tokenId, detail.price, detail.amount);
+    nftsForSale[tokenAddress][saleId].isForSale = false;
+    ITokenForSale(tokenAddress).removeFromSale(saleId);
+    
+    emit PriceItemRemoved(tokenAddress, saleId, detail.tokenId, detail.price, detail.amount);
   }
 
   function setClaimFee(uint256 _claimFee) external onlyOwner {
-      claimFee = _claimFee;
+    claimFee = _claimFee;
   }
 
   function withdrawToken(address _token, uint256 _amount) external onlyOwner {
-      IBEP20(_token).transfer(msg.sender, _amount);
+    IBEP20(_token).transfer(msg.sender, _amount);
   }
   
   function withdraw(uint256 _amount) external onlyOwner {
-      payable(msg.sender).transfer(_amount);
+    payable(msg.sender).transfer(_amount);
   }
 }
 
