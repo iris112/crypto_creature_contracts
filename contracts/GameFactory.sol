@@ -55,7 +55,6 @@ contract GameFactory is Ownable {
   event BreedingItemSold(address tokenAddress, uint256 saleId, uint256 breedingTokenId, uint256 tokenId, uint256 price, uint256 amount);
 
   mapping (address => NFTAttribute) internal _settings;
-  uint256 private BREEDING_TIME;    //block count
 
   constructor() {}
   
@@ -123,16 +122,19 @@ contract GameFactory is Ownable {
     }
 
     detail.owner.transfer(msg.value);
-    if (detail.amount > 1)
-      BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), detail.tokenId, detail.amount, "");
-    else
-      IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), detail.tokenId);
-    ITokenForSale(tokenAddress).removeFromSale(saleId);
-    
-    if (!isBreeding)
-      emit PriceItemSold(tokenAddress, saleId, detail.tokenId, msg.value, detail.amount);
-    else
+
+    if (isBreeding) {
+      ITokenForBreeding(tokenAddress).breeding(detail.tokenId, tokenIdForBreeding, _msgSender());
+      ITokenForBreeding(tokenAddress).removeFromBreeding(saleId);
       emit BreedingItemSold(tokenAddress, saleId, detail.tokenId, tokenIdForBreeding, msg.value, detail.amount);
+    } else {
+      if (detail.amount > 1)
+        BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), detail.tokenId, detail.amount, "");
+      else
+        IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), detail.tokenId);
+      ITokenForSale(tokenAddress).removeFromSale(saleId);
+      emit PriceItemSold(tokenAddress, saleId, detail.tokenId, msg.value, detail.amount);
+    }
   }
 
   function _checkBuyPossible(IGameFactory.TokenDetails memory detail) private {
@@ -167,14 +169,12 @@ contract GameFactory is Ownable {
       require(detail.isForBreeding, "sellItemCancel: NOT_SELLING");
       nftsForSale[tokenAddress][saleId].isForBreeding = false;
       ITokenForBreeding(tokenAddress).removeFromBreeding(saleId);
-      
       emit BreedingItemRemoved(tokenAddress, saleId, detail.tokenId, detail.price, detail.amount);
     }
     else {
       require(detail.isForSale, "sellItemCancel: NOT_SELLING");
       nftsForSale[tokenAddress][saleId].isForSale = false;
       ITokenForSale(tokenAddress).removeFromSale(saleId);
-      
       emit PriceItemRemoved(tokenAddress, saleId, detail.tokenId, detail.price, detail.amount);
     }
   }

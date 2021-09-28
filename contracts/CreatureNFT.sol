@@ -20,14 +20,18 @@ contract CreatureNFT is BEP721Enumerable, TokenForBreeding {
     return super.supportsInterface(interfaceId);
   }
   
-  function mint() external onlyOwner returns(uint256) {
+  function mint() external onlyOwner returns (uint256) {
     return _mintItem(_msgSender());
   }
 
-  function mintFor(address minter) external onlyGameFactory returns(uint256) {
+  function mintFor(address minter) external onlyGameFactory returns (uint256) {
     require(minter != address(0), "CreatureNFT: MINTER_IS_ZERO_ADDRESS");
     
     return _mintItem(minter);
+  }
+
+  function _mintEgg() internal override returns (uint256) {
+    return _mintItem(_msgSender());
   }
 
   function _mintItem(address minter) private returns(uint256) {

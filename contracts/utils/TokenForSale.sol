@@ -11,7 +11,7 @@ contract TokenForSale is Ownable, IBEP165 {
 
   uint256[] public idsForSale;
   // sale Id => index + 1 of idsForSale
-  mapping (uint256 => uint256) saleIndexForToken;
+  mapping (uint256 => uint256) public saleIndexForToken;
   
   address public gameFactory;
 
