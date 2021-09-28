@@ -3,6 +3,7 @@
 pragma solidity 0.8.0;
 
 import "../interfaces/IGameFactory.sol";
+import "../interfaces/ITokenForBreeding.sol";
 import "./Ownable.sol";
 import "./TokenForSale.sol";
 
@@ -13,6 +14,10 @@ contract TokenForBreeding is TokenForSale {
   mapping (uint256 => uint256) breedingIndexForToken;
 
   constructor() {}
+
+  function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    return interfaceId == type(ITokenForBreeding).interfaceId || super.supportsInterface(interfaceId);
+  }
 
   function setForBreeding(uint256 saleId) external onlyGameFactory {
     idsForBreeding.push(saleId);

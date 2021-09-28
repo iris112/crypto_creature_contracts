@@ -10,7 +10,7 @@ import "../library/Address.sol";
 import "../library/Strings.sol";
 import "./ProxyRegistry.sol";
 
-contract BEP1155Tradable is IBEP165, Ownable {
+contract BEP1155Tradable is Ownable, IBEP165 {
   using SafeMath for uint256;
   using Address for address;
   using Strings for string;
@@ -125,7 +125,7 @@ contract BEP1155Tradable is IBEP165, Ownable {
     return batchBalances;
   }
 
-  function supportsInterface(bytes4 _interfaceID) override external pure returns (bool) {
+  function supportsInterface(bytes4 _interfaceID) external view virtual override returns (bool) {
     if (_interfaceID == INTERFACE_SIGNATURE_BEP165 ||
         _interfaceID == INTERFACE_SIGNATURE_BEP1155) {
       return true;

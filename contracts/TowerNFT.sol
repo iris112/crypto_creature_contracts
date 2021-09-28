@@ -7,13 +7,17 @@ import "./utils/BEP721Enumerable.sol";
 import "./utils/TokenForSale.sol";
 import "./library/Counter.sol";
 
-contract TowerNFT is TokenForSale, BEP721Enumerable {
+contract TowerNFT is BEP721Enumerable, TokenForSale {
   using Counters for Counters.Counter;
 
   Counters.Counter internal tokenIdCounter;
 
   constructor() BEP721("TowerNFT", "TNFT")  {  
     _setBaseURI("https://cryptocreatures.org/api/TowerNFT/");
+  }
+
+  function supportsInterface(bytes4 interfaceId) public view override(BEP721Enumerable, TokenForSale) returns (bool) {
+    return super.supportsInterface(interfaceId);
   }
   
   function mint() external onlyOwner returns(uint256) {

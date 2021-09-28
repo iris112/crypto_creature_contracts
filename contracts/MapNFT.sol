@@ -9,7 +9,7 @@ import "./library/Strings.sol";
 import "./library/Address.sol";
 import "./library/Counter.sol";
 
-contract MapNFT is TokenForSale, BEP721Enumerable {
+contract MapNFT is BEP721Enumerable, TokenForSale {
   using Counters for Counters.Counter;
   using Strings for string;
   using Address for address;
@@ -28,6 +28,10 @@ contract MapNFT is TokenForSale, BEP721Enumerable {
 
   constructor() BEP721("MapNFT", "MNFT")  {  
     _setBaseURI("https://cryptocreatures.org/api/MapNFT/");
+  }
+
+  function supportsInterface(bytes4 interfaceId) public view override(BEP721Enumerable, TokenForSale) returns (bool) {
+    return super.supportsInterface(interfaceId);
   }
   
   function mint(uint8 mapX, uint8 mapY, uint16 ground) external onlyOwner returns(uint256) {

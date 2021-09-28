@@ -7,13 +7,17 @@ import "./utils/TokenForBreeding.sol";
 import "./utils/BEP721.sol";
 import "./library/Counter.sol";
 
-contract CreatureNFT is TokenForBreeding, BEP721Enumerable {
+contract CreatureNFT is BEP721Enumerable, TokenForBreeding {
   using Counters for Counters.Counter;
 
   Counters.Counter internal tokenIdCounter;
 
   constructor() BEP721("CreatureNFT", "CNFT")  {  
     _setBaseURI("https://cryptocreatures.org/api/CreatureNFT/");
+  }
+
+  function supportsInterface(bytes4 interfaceId) public view override(BEP721Enumerable, TokenForBreeding) returns (bool) {
+    return super.supportsInterface(interfaceId);
   }
   
   function mint() external onlyOwner returns(uint256) {
@@ -35,4 +39,3 @@ contract CreatureNFT is TokenForBreeding, BEP721Enumerable {
     return newTokenId;
   }
 }
-

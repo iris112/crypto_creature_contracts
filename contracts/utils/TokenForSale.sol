@@ -3,9 +3,11 @@
 pragma solidity 0.8.0;
 
 import "../interfaces/IGameFactory.sol";
+import "../interfaces/IBEP165.sol";
+import "../interfaces/ITokenForSale.sol";
 import "./Ownable.sol";
 
-contract TokenForSale is Ownable {
+contract TokenForSale is Ownable, IBEP165 {
 
   uint256[] public idsForSale;
   // sale Id => index + 1 of idsForSale
@@ -22,6 +24,10 @@ contract TokenForSale is Ownable {
   }
 
   constructor() {}
+
+  function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    return interfaceId == type(ITokenForSale).interfaceId;
+  }
 
   function setGameFactory(address _gameFactory) external onlyOwner {
     gameFactory = _gameFactory;
