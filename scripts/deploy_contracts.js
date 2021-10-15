@@ -34,7 +34,6 @@ async function main() {
   // We get the contract to deploy
   const creature = await deployContract("CreatureNFT");
   await deployContract("CreatureNFTitems");
-  await deployContract("DiamondToken");
   const factory = await deployContract("GameFactory");
   await deployContract("GameToken");
   const map = await deployContract("MapNFT");
@@ -48,17 +47,21 @@ async function main() {
   await tower.setGameFactory(factory.address);
 
   //Mint
-  for (let i = 0; i < 20; i++)
+  for (let i = 0; i < 40; i++) {
     await creature.mint();
-  for (let i = 0; i < 40; i++)
+    await creature.approve(factory.address, i + 1);
+  }
+  for (let i = 0; i < 40; i++) {
     await tower.mint();
+    await tower.approve(factory.address, i + 1);
+  }
 
   //make Sale
-  for (let i = 0; i < 15; i++) {
-    await factory.sellItem(creature.address, i + 1, hre.ethers.utils.parseEther((0.001 * (i + 1)).toString()));
+  for (let i = 0; i < 40; i++) {
+    await factory.sellItem(creature.address, i + 1, hre.ethers.utils.parseEther((0.001 * (i + 1)).toString()), 1, false);
   }
-  for (let i = 0; i < 25; i++) {
-    await factory.sellItem(tower.address, i + 1, hre.ethers.utils.parseEther((0.001 * (i + 1)).toString()));
+  for (let i = 0; i < 40; i++) {
+    await factory.sellItem(tower.address, i + 1, hre.ethers.utils.parseEther((0.001 * (i + 1)).toString()), 1, false);
   }
 
 

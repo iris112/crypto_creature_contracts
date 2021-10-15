@@ -17,7 +17,7 @@ contract GameToken is BEP20 {
       _;
   }
   
-  constructor() BEP20('Crypto creatures gaming', 'CCG') {
+  constructor() BEP20('Crypto creatures gaming', 'GMP') {
       _mint(msg.sender, 10000000000e18);
   }
   

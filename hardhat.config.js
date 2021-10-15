@@ -23,10 +23,6 @@ module.exports = {
   networks: {
     hardhat: {
     },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: [process.env.PRIVATE_KEY]
-    },
     binance_testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,

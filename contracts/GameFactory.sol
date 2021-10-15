@@ -23,7 +23,6 @@ contract GameFactory is Ownable {
   using Counters for Counters.Counter;
   
   address public gameToken;
-  address public diamondToken;
   address public mapsToken;
   address public mapItemsToken;
   address public towersToken;
@@ -62,10 +61,6 @@ contract GameFactory is Ownable {
   
   function setGameToken(address _gameToken) external onlyOwner {
       gameToken = _gameToken;
-  }
-  
-  function setDiamondToken(address _diamondToken) external onlyOwner {
-      diamondToken = _diamondToken;
   }
   
   function setMapsToken(address _mapsToken) external onlyOwner {
