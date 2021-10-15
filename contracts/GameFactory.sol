@@ -142,7 +142,7 @@ contract GameFactory is Ownable {
     require(_msgSender() != address(0), "sellItem: INVALID_ADDRESS");
 
     uint256 newSaleId = _getNewSaleId();
-    nftsForSale[tokenAddress][newSaleId] = IGameFactory.TokenDetails(!isBreeding, isBreeding, payable(_msgSender()), tokenId, amount, price);
+    nftsForSale[tokenAddress][newSaleId] = IGameFactory.TokenDetails(!isBreeding, isBreeding, payable(_msgSender()), tokenId, newSaleId, amount, price);
     
     if (isBreeding) {
       ITokenForBreeding(tokenAddress).setForBreeding(newSaleId);

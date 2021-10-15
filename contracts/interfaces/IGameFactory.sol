@@ -8,6 +8,7 @@ interface IGameFactory {
     bool isForBreeding;
     address payable owner;
     uint256 tokenId;
+    uint256 saleId;
     uint256 amount;
     uint256 price;
   }
