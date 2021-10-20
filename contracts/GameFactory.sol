@@ -14,6 +14,7 @@ import "./utils/BEP1155Tradable.sol";
 import "./interfaces/IGameFactory.sol";
 import "./interfaces/ITokenForSale.sol";
 import "./interfaces/ITokenForBreeding.sol";
+import "./interfaces/IEggNFT.sol";
 import "./library/Counter.sol";
 
 contract GameFactory is Ownable {
@@ -29,6 +30,7 @@ contract GameFactory is Ownable {
   address public towerItemsToken;
   address public creaturesToken;
   address public creatureItemsToken;
+  address public eggsToken;
   uint256 public claimFee = 1e16;
   Counters.Counter internal saleIdCounter;
 
@@ -87,6 +89,9 @@ contract GameFactory is Ownable {
       creatureItemsToken = _creatureItemsToken;
   }
 
+  function setEggsToken(address _eggsToken) external onlyOwner {
+      eggsToken = _eggsToken;
+  }
   
   function mintMap(uint8 mapX, uint8 mapY, uint16 ground) external returns (uint256) {
     uint256 amount = uint256(mapX).mul(uint256(mapY)).mul(1e18);
@@ -119,7 +124,7 @@ contract GameFactory is Ownable {
     detail.owner.transfer(msg.value);
 
     if (isBreeding) {
-      ITokenForBreeding(tokenAddress).breeding(detail.tokenId, tokenIdForBreeding, _msgSender());
+      IEggNFT(eggsToken).mintFor(_msgSender(), detail.tokenId, tokenIdForBreeding);
       ITokenForBreeding(tokenAddress).removeFromBreeding(saleId);
       emit BreedingItemSold(tokenAddress, saleId, detail.tokenId, tokenIdForBreeding, msg.value, detail.amount);
     } else {
@@ -127,7 +132,7 @@ contract GameFactory is Ownable {
         BEP1155Tradable(tokenAddress).safeTransferFrom(detail.owner, _msgSender(), detail.tokenId, detail.amount, "");
       else
         IBEP721(tokenAddress).transferFrom(detail.owner, _msgSender(), detail.tokenId);
-      ITokenForSale(tokenAddress).removeFromSale(saleId);
+      ITokenForSale(tokenAddress).removeFromSale(detail.tokenId, saleId);
       emit PriceItemSold(tokenAddress, saleId, detail.tokenId, msg.value, detail.amount);
     }
   }
@@ -149,7 +154,7 @@ contract GameFactory is Ownable {
       emit BreedingItemAdded(tokenAddress, newSaleId, tokenId, price, amount);
     }
     else {
-      ITokenForSale(tokenAddress).setForSale(newSaleId);
+      ITokenForSale(tokenAddress).setForSale(tokenId, newSaleId);
       emit PriceItemAdded(tokenAddress, newSaleId, tokenId, price, amount);
     }
   }
@@ -169,7 +174,7 @@ contract GameFactory is Ownable {
     else {
       require(detail.isForSale, "sellItemCancel: NOT_SELLING");
       nftsForSale[tokenAddress][saleId].isForSale = false;
-      ITokenForSale(tokenAddress).removeFromSale(saleId);
+      ITokenForSale(tokenAddress).removeFromSale(detail.tokenId, saleId);
       emit PriceItemRemoved(tokenAddress, saleId, detail.tokenId, detail.price, detail.amount);
     }
   }

@@ -40,11 +40,15 @@ async function main() {
   await deployContract("MapNFTitems");
   const tower = await deployContract("TowerNFT");
   await deployContract("TowerNFTitems");
+  const egg = await deployContract("EggNFT");
 
   //Set GameFactory
   await creature.setGameFactory(factory.address);
   await map.setGameFactory(factory.address);
   await tower.setGameFactory(factory.address);
+  await egg.setGameFactory(factory.address);
+
+  await factory.setEggsToken(egg.address);
 
   //Mint
   for (let i = 0; i < 40; i++) {

@@ -30,7 +30,7 @@ contract CreatureNFT is BEP721Enumerable, TokenForBreeding {
     return _mintItem(minter);
   }
 
-  function _mintEgg() internal override returns (uint256) {
+  function _mintFromEgg() internal override returns (uint256) {
     return _mintItem(_msgSender());
   }
 

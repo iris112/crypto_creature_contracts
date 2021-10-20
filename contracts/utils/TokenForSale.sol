@@ -12,6 +12,8 @@ contract TokenForSale is Ownable, IBEP165 {
   uint256[] public idsForSale;
   // sale Id => index + 1 of idsForSale
   mapping (uint256 => uint256) public saleIndexForToken;
+  // token Id => saleIds
+  mapping (uint256 => uint256[]) public saleIdsForToken;
   
   address public gameFactory;
 
@@ -33,18 +35,22 @@ contract TokenForSale is Ownable, IBEP165 {
     gameFactory = _gameFactory;
   }
 
-  function setForSale(uint256 saleId) external onlyGameFactory {
+  function setForSale(uint256 tokenId, uint256 saleId) external onlyGameFactory {
     idsForSale.push(saleId);
+    saleIdsForToken[tokenId].push(saleId);
     saleIndexForToken[saleId] = idsForSale.length;
   }
 
-  function removeFromSale(uint256 saleId) external onlyGameFactory {
+  function removeFromSale(uint256 tokenId, uint256 saleId) external onlyGameFactory {
     uint256 index = saleIndexForToken[saleId] - 1;
     uint256 length = idsForSale.length;
 
     require(index > 0, "TokenForSale: NOT_EXIST_TOKEN_SALE");
     idsForSale[index] = idsForSale[length - 1];
     idsForSale.pop();
+
+    //ToDO: For ERC1155 with multiple sale
+    saleIdsForToken[tokenId].pop();
   }
 
   function getAllOnSale(uint8 page, uint8 perPage) external view returns (IGameFactory.TokenDetails[] memory, uint256, uint256) {
