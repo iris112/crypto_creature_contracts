@@ -14,4 +14,5 @@ interface IGameFactory {
   }
   
   function nftsForSale(address tokenAddress, uint256 saleId) external view returns (TokenDetails memory);
+  function mintFromEgg(address tokenAddress, address minter) external;
 }

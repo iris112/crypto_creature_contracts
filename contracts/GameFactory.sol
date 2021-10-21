@@ -108,6 +108,12 @@ contract GameFactory is Ownable {
     return result;
   }
 
+  function mintFromEgg(address tokenAddress, address minter) external {
+    require(_msgSender() == eggsToken, "MintFromEgg: INVALID_ADDRESS");
+
+    ITokenForBreeding(tokenAddress).mintFor(minter);
+  }
+
   function buyItem(address tokenAddress, uint256 saleId, bool isBreeding, uint256 tokenIdForBreeding) external payable {
     IGameFactory.TokenDetails memory detail = nftsForSale[tokenAddress][saleId];
 

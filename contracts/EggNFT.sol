@@ -7,6 +7,7 @@ import "./utils/TokenForSale.sol";
 import "./utils/BEP721.sol";
 import "./library/Counter.sol";
 import "./interfaces/IEggNFT.sol";
+import "./interfaces/IGameFactory.sol";
 
 contract EggNFT is BEP721Enumerable, TokenForSale {
   using Counters for Counters.Counter;
@@ -17,12 +18,31 @@ contract EggNFT is BEP721Enumerable, TokenForSale {
   mapping(uint256 => IEggNFT.EggInfo) public Eggs;
   Counters.Counter internal tokenIdCounter;
 
+  uint256 private _BREEDING_TIME = 200;    //block count = 200, time = 200 * 3s = 10min
+
   constructor() BEP721("EggNFT", "ENFT")  {  
     _setBaseURI("https://cryptocreatures.org/api/EggNFT/");
   }
 
   function supportsInterface(bytes4 interfaceId) public view override(BEP721Enumerable, TokenForSale) returns (bool) {
     return super.supportsInterface(interfaceId);
+  }
+
+  function setBreedingTime(uint256 delay) external onlyOwner {
+    _BREEDING_TIME = delay;
+  }
+
+  function mintFromEgg(uint256 tokenId, address tokenAddress) external virtual {
+    require(tokenId > 0, "TokenForBreeding: INVALID_EGGID");
+
+    IEggNFT.EggInfo memory detail = Eggs[tokenId];
+    require(detail.owner == _msgSender(), "TokenForBreeding: NOT_OWNER");
+
+    if (block.number - detail.blockNumber > _BREEDING_TIME) {
+      IGameFactory(gameFactory).mintFromEgg(tokenAddress, _msgSender());
+    }
+
+    _burn(tokenId);
   }
   
   function mint(uint256 firstId, uint256 secondId) external onlyOwner returns (uint256) {

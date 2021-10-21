@@ -16,16 +16,10 @@ contract TokenForBreeding is TokenForSale {
   // sale Id => index + 1 of idsForBreeding
   mapping (uint256 => uint256) public breedingIndexForToken;
 
-  uint256 private _BREEDING_TIME = 200;    //block count = 200, time = 200 * 3s = 10min
-
   constructor() {}
 
   function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
     return interfaceId == type(ITokenForBreeding).interfaceId || super.supportsInterface(interfaceId);
-  }
-
-  function setBreedingTime(uint256 delay) external onlyOwner {
-    _BREEDING_TIME = delay;
   }
 
   function setForBreeding(uint256 tokenId, uint256 saleId) external onlyGameFactory {
@@ -60,19 +54,4 @@ contract TokenForBreeding is TokenForSale {
 
     return (ret, end - start, length);
   }
-
-  function mintFromEgg(uint256 eggId, address eggsToken) external returns (uint256) {
-    require(eggId > 0, "TokenForBreeding: INVALID_EGGID");
-
-    IEggNFT.EggInfo memory detail = IEggNFT(eggsToken).Eggs(eggId);
-    require(detail.owner == _msgSender(), "TokenForBreeding: NOT_OWNER");
-
-    if (block.number - detail.blockNumber > _BREEDING_TIME) {
-      return _mintFromEgg();
-    }
-
-    return 0;
-  }
-
-  function _mintFromEgg() internal virtual returns (uint256) {}
 }
