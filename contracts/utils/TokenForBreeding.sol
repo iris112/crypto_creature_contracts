@@ -28,18 +28,21 @@ contract TokenForBreeding is TokenForSale {
     _BREEDING_TIME = delay;
   }
 
-  function setForBreeding(uint256 saleId) external onlyGameFactory {
+  function setForBreeding(uint256 tokenId, uint256 saleId) external onlyGameFactory {
     idsForBreeding.push(saleId);
+    saleIdsForToken[tokenId].push(saleId);
     breedingIndexForToken[saleId] = idsForBreeding.length;
   }
 
-  function removeFromBreeding(uint256 saleId) external onlyGameFactory {
+  function removeFromBreeding(uint256 tokenId, uint256 saleId) external onlyGameFactory {
     uint256 index = breedingIndexForToken[saleId] - 1;
     uint256 length = idsForBreeding.length;
 
     require(index > 0, "TokenForBreeding: NOT_EXIST_BREEDING");
     idsForBreeding[index] = idsForBreeding[length - 1];
     idsForBreeding.pop();
+
+    saleIdsForToken[tokenId].pop();
   }
 
   function getAllOnBreeding(uint8 page, uint8 perPage) external view returns (IGameFactory.TokenDetails[] memory, uint256, uint256) {

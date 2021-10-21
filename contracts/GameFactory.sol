@@ -125,7 +125,7 @@ contract GameFactory is Ownable {
 
     if (isBreeding) {
       IEggNFT(eggsToken).mintFor(_msgSender(), detail.tokenId, tokenIdForBreeding);
-      ITokenForBreeding(tokenAddress).removeFromBreeding(saleId);
+      ITokenForBreeding(tokenAddress).removeFromBreeding(detail.tokenId, saleId);
       emit BreedingItemSold(tokenAddress, saleId, detail.tokenId, tokenIdForBreeding, msg.value, detail.amount);
     } else {
       if (detail.amount > 1)
@@ -146,11 +146,14 @@ contract GameFactory is Ownable {
   function sellItem(address tokenAddress, uint256 tokenId, uint256 price, uint256 amount, bool isBreeding) external {
     require(_msgSender() != address(0), "sellItem: INVALID_ADDRESS");
 
+    uint256 countOfSaleIdsForToken = ITokenForSale(tokenAddress).getCountOfSaleIdsForToken(tokenId);
+    require(countOfSaleIdsForToken == 0, "sellItem: ALREADY_IN_SALE");
+    
     uint256 newSaleId = _getNewSaleId();
     nftsForSale[tokenAddress][newSaleId] = IGameFactory.TokenDetails(!isBreeding, isBreeding, payable(_msgSender()), tokenId, newSaleId, amount, price);
     
     if (isBreeding) {
-      ITokenForBreeding(tokenAddress).setForBreeding(newSaleId);
+      ITokenForBreeding(tokenAddress).setForBreeding(tokenId, newSaleId);
       emit BreedingItemAdded(tokenAddress, newSaleId, tokenId, price, amount);
     }
     else {
@@ -168,7 +171,7 @@ contract GameFactory is Ownable {
     if (isBreeding) {
       require(detail.isForBreeding, "sellItemCancel: NOT_SELLING");
       nftsForSale[tokenAddress][saleId].isForBreeding = false;
-      ITokenForBreeding(tokenAddress).removeFromBreeding(saleId);
+      ITokenForBreeding(tokenAddress).removeFromBreeding(detail.tokenId, saleId);
       emit BreedingItemRemoved(tokenAddress, saleId, detail.tokenId, detail.price, detail.amount);
     }
     else {

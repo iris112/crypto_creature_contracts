@@ -22,6 +22,7 @@ module.exports = {
   solidity: "0.8.0",
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true
     },
     binance_testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
