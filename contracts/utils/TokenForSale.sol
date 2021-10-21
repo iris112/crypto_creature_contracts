@@ -49,7 +49,7 @@ contract TokenForSale is Ownable, IBEP165 {
     uint256 index = saleIndexForToken[saleId] - 1;
     uint256 length = idsForSale.length;
 
-    require(index > 0, "TokenForSale: NOT_EXIST_TOKEN_SALE");
+    require(index >= 0, "TokenForSale: NOT_EXIST_TOKEN_SALE");
     idsForSale[index] = idsForSale[length - 1];
     idsForSale.pop();
 

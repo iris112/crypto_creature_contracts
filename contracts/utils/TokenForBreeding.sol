@@ -38,7 +38,7 @@ contract TokenForBreeding is TokenForSale {
     uint256 index = breedingIndexForToken[saleId] - 1;
     uint256 length = idsForBreeding.length;
 
-    require(index > 0, "TokenForBreeding: NOT_EXIST_BREEDING");
+    require(index >= 0, "TokenForBreeding: NOT_EXIST_BREEDING");
     idsForBreeding[index] = idsForBreeding[length - 1];
     idsForBreeding.pop();
 
