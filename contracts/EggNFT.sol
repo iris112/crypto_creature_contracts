@@ -37,10 +37,9 @@ contract EggNFT is BEP721Enumerable, TokenForSale {
 
     IEggNFT.EggInfo memory detail = Eggs[tokenId];
     require(detail.owner == _msgSender(), "EggNFT: NOT_OWNER");
+    require(block.number - detail.blockNumber > _BREEDING_TIME, "EggNFT: NEED_TO_WAIT_BREEDING_TIME");
 
-    if (block.number - detail.blockNumber > _BREEDING_TIME) {
-      IGameFactory(gameFactory).mintFromEgg(tokenAddress, _msgSender());
-    }
+    IGameFactory(gameFactory).mintFromEgg(tokenAddress, _msgSender());
 
     delete Eggs[tokenId];
     _burn(tokenId);
