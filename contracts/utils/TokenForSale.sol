@@ -35,6 +35,10 @@ contract TokenForSale is Ownable, IBEP165 {
     gameFactory = _gameFactory;
   }
 
+  function getCountOfSaleIdsForToken(uint256 tokenId) external view returns (uint256) {
+    return saleIdsForToken[tokenId].length;
+  }
+
   function setForSale(uint256 tokenId, uint256 saleId) external onlyGameFactory {
     idsForSale.push(saleId);
     saleIdsForToken[tokenId].push(saleId);
