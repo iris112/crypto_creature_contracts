@@ -8,7 +8,7 @@ import "./utils/BEP721.sol";
 import "./library/Counter.sol";
 import "./interfaces/IEggNFT.sol";
 
-contract CreatureNFT is BEP721Enumerable, TokenForSale {
+contract EggNFT is BEP721Enumerable, TokenForSale {
   using Counters for Counters.Counter;
 
   event BreedingItem(uint256 firstId, uint256 secondId, address owner);
@@ -30,7 +30,7 @@ contract CreatureNFT is BEP721Enumerable, TokenForSale {
   }
 
   function mintFor(address minter, uint256 firstId, uint256 secondId) external onlyGameFactory returns (uint256) {
-    require(minter != address(0), "CreatureNFT: MINTER_IS_ZERO_ADDRESS");
+    require(minter != address(0), "EggNFT: MINTER_IS_ZERO_ADDRESS");
     
     return _mintItem(minter, firstId, secondId);
   }
